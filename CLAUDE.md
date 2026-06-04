@@ -11,15 +11,15 @@ A public collection of Claude Code custom skills (slash commands). Users fork th
 
 ## Skills in this repo
 
-- `bobo-init-project` — Project initialization wizard
-- `bobo-wrap-it-up` — End-of-session wrap-up
-- `bobo-study-project` — Session start / project orientation
-- `bobo-push` — Stage, commit, and push changes
-- `bobo-todo` — Conversational task manager
+- `jadu-bidar` — Session start / project orientation
+- `jadu-tamam` — End-of-session wrap-up
+- `jadu-zad` — Project initialization wizard
+- `jadu-push` — Stage, commit, and push changes
+- `jadu-kar` — Conversational task manager
 
 ## Conventions Claude should follow
 
-- Skill files use the `bobo-` prefix naming convention
+- Skill files use the `jadu-` prefix naming convention
 - Each skill must be self-contained — it should work without relying on context from other skills or conversations
 - When adding or editing a skill, preserve the existing file structure and tone
 

@@ -70,3 +70,35 @@
 - [ ] Set up GitHub Actions for automatic Claude PR review (P2)
 
 ---
+
+## 2026-06-04 — Full jadu-* skill rename, license, and sound setup
+
+### What we built
+
+| Feature | Files |
+|---|---|
+| 5 new jadu-* skill files (bidar, tamam, zad, push, kar) | `.claude/commands/jadu-*.md` |
+| Removed all bobo-*.md files | `.claude/commands/bobo-*.md` (deleted) |
+| MIT LICENSE | `LICENSE` |
+| Sound files for focus reminders | `sounds/30.mp3`, `sounds/60.mp3` |
+| Updated skill docs and lists | `README.md`, `README.fa.md`, `CLAUDE.md`, `TASKS.md` |
+
+### Decisions
+
+#### 1. Persian skill naming (bidar, tamam, zad, kar, push)
+**Why:** User wanted skill names with cultural resonance tied to the project name Jadu (جادو — magic). The bobo- prefix was personal/arbitrary; jadu- gives the commands a consistent identity and makes the collection feel coherent rather than piecemeal.
+**How:** Each skill was mapped to a Persian word: bidar (بیدار, awake) = session start, tamam (تمام, done) = session end, zad (زاد, born/created) = project init, kar (کار, work) = tasks, jadu-push = push. All bobo-*.md files removed after new versions verified.
+
+#### 2. jadu-tamam uses background agent approach
+**Why:** Session-end wrap-up involves reading multiple files and writing several updates. Doing it inline consumes a large slice of the remaining context. Delegating to a background agent keeps the foreground context cheap and fast.
+**How:** jadu-tamam writes a compact inline brief capturing only what changed, then spawns a background agent with that brief as the sole source of truth — mirroring the pattern in the global bobo-wrap-it-up skill.
+
+#### 3. Sound files included in repo with graceful fallback
+**Why:** Audio focus reminders are useful but not universal — public users won't have ~/.claude/sounds/ set up. Shipping the files in the repo lets users opt in without hunting for audio assets, while the fallback ensures the skill never breaks for users who skip setup.
+**How:** `sounds/` directory added to repo. jadu-bidar guards playback with `command -v ffplay && [ -f file ]` before attempting to play. README includes an optional setup section for sound configuration.
+
+### Pending / TODO
+
+- [ ] P2: Set up GitHub Actions for automatic Claude PR review
+
+---

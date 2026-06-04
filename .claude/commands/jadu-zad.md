@@ -1,4 +1,4 @@
-# Init Project — Project Initialization Wizard
+# Zad — Project Initialization Wizard
 
 Bootstraps a new or existing project by asking key questions and writing the appropriate context files.
 
@@ -30,7 +30,7 @@ _Answer what's relevant — skip anything that doesn't apply._
 - **Other tools**: Anything else worth knowing (CI/CD, communication tools, storage, etc.)?
 
 ### Team & Timeline
-- **Team**: Who's involved? List names/roles if known (e.g. "25mordad — solo", "25mordad (content) + Sara (design)").
+- **Team**: Who's involved? List names/roles if known (e.g. "alice — solo", "alice (content) + bob (design)").
 - **Start date**: When did / will the project start?
 - **Milestones**: Are there any phases, deadlines, or a target to hit?
 
@@ -126,7 +126,7 @@ _Initialized: YYYY-MM-DD_
 
 ### TASKS.md format
 
-Use the same format as the `todo` command. Pre-populate with tasks derived from the user's milestones and any "next steps" they mentioned. Assign realistic priorities:
+Use the same format as the `jadu-kar` command. Pre-populate with tasks derived from the user's milestones and any "next steps" they mentioned. Assign realistic priorities:
 - P1: anything due in the next 1–2 weeks or explicitly called urgent
 - P2: milestone work within the current sprint/phase
 - P3: backlog or "someday" items
@@ -140,4 +140,5 @@ Use the same format as the `todo` command. Pre-populate with tasks derived from 
 - Never overwrite an existing file without asking first.
 - Don't add placeholder sections with "TBD" — omit sections that have no content yet.
 - After writing, print a short summary: which files were created/updated and one sentence per file on what it contains.
+- After the summary, print: "Tip: run `/loop 20m /compact` to auto-compress context every 20 min and keep token cost low."
 - Do NOT execute any project work — only write the context files.

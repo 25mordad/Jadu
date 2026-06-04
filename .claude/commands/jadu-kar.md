@@ -1,4 +1,4 @@
-# Tasks — Conversational Task Manager
+# Kar — Task Manager
 
 Manages `TASKS.md` in the project root through conversation. Never asks the user to edit the file directly.
 
