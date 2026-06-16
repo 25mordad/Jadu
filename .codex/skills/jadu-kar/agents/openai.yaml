@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jadu Kar"
+  short_description: "Manage TASKS.md conversationally"
+  default_prompt: "Use $jadu-kar to review and update this project's tasks."

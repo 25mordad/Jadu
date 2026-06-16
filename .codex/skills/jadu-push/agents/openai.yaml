@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jadu Push"
+  short_description: "Commit and push explicit changes"
+  default_prompt: "Use $jadu-push to commit and push the current changes."

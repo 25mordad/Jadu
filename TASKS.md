@@ -23,6 +23,13 @@
 
 ## Done
 
+- [x] P2 · Make Jadu multi-agent friendly with Codex skills and Payan rename — 2026-06-16
+  - [x] Rename `jadu-tamam` to `jadu-payan`
+  - [x] Add `.codex/skills/` versions of Jadu workflows
+  - [x] Add `AGENTS.md` as the shared agent guide
+  - [x] Update README, Farsi README, PROJECT, and CLAUDE docs for Claude Code + Codex usage
+  - [x] Remove 60-minute reminder references and keep only the 30-minute reminder
+
 - [x] P1 · Rename all skills to jadu-* Persian names and optimize for public use — 2026-06-04
   - [x] Read global versions and compare with project versions
   - [x] Choose Persian names: bidar (بیدار), tamam (تمام), zad (زاد), kar (کار), jadu-push

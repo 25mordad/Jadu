@@ -1,8 +1,18 @@
-Stage all modified tracked files, create a commit with a concise message summarising the changes, then push to the current remote branch.
+# Push — Commit and Push
 
-Steps:
-1. Run `git status` and `git diff` to understand what changed.
-2. Stage every modified/deleted tracked file (`git add` by name — no `-A`).
-3. Write a commit message: one subject line (≤72 chars) + blank line + bullet list of changes. Always append `Co-Authored-By: Claude <noreply@anthropic.com>`.
-4. Run `git push origin <current-branch>`.
-5. Confirm the push succeeded and print the remote URL line from git output.
+Stage all changes, create a concise commit, then push to the current remote branch. Use only when the user explicitly invokes `/jadu-push` or clearly asks to push.
+
+## Steps
+
+1. Run `git status --short` and inspect relevant diffs to understand what changed.
+2. Stage all changes with `git add -A`.
+3. Create a concise commit message summarizing the staged changes. Use a user-provided message if one was given.
+4. Run `git push`.
+5. Confirm the push succeeded and report the branch/remote.
+
+## Rules
+
+- Never push unless the user explicitly asks.
+- Do not add Claude-specific co-author lines unless the user asks.
+- If there is nothing to commit, skip commit and push only if there are already local commits to push.
+- If push fails because of auth, divergence, or network, report the error and stop.

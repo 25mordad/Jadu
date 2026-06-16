@@ -1,6 +1,6 @@
 # Jadu (جادو)
 
-A collection of Claude Code custom skills for structured, productive coding sessions. Fork the repo, drop the files into your project, and the commands are immediately available in Claude Code.
+A collection of AI-agent workflow skills for structured, productive project sessions. Fork the repo, copy the workflows you want, and use them with Claude Code or Codex.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -8,71 +8,97 @@ A collection of Claude Code custom skills for structured, productive coding sess
 
 ---
 
-## Skills included
+## Workflows included
 
-| Command | What it does |
-|---|---|
-| `/jadu-bidar` | Session start — reads project state, expands the task list with subtasks, sets 30- and 60-minute focus reminders |
-| `/jadu-zad` | Project initialization wizard — asks setup questions once and writes `PROJECT.md`, `CLAUDE.md`, and `TASKS.md` |
-| `/jadu-tamam` | Session end — writes a compact brief and delegates all doc updates to a background agent, keeping your context cheap |
-| `/jadu-kar` | Conversational task manager — add, update, and complete tasks in `TASKS.md` through conversation |
-| `/jadu-push` | Stage tracked changes, write a commit message, and push to the current branch in one step |
+| Workflow | Claude Code | Codex | What it does |
+|---|---|---|---|
+| Bidar | `/jadu-bidar` | `jadu-bidar` skill | Session start — reads project state, expands planning subtasks, and sets or suggests a 30-minute focus reminder |
+| Zad | `/jadu-zad` | `jadu-zad` skill | Project initialization wizard — asks setup questions once and writes project context files |
+| Kar | `/jadu-kar` | `jadu-kar` skill | Conversational task manager — add, update, review, and complete tasks in `TASKS.md` |
+| Payan | `/jadu-payan` | `jadu-payan` skill | Session end — writes a compact brief and updates docs/tasks from that brief |
+| Push | `/jadu-push` | `jadu-push` skill | Stage changes, write a concise commit, and push only when explicitly requested |
+
+`jadu-tamam` was renamed to `jadu-payan`.
 
 ---
 
 ## How to use
 
-### Option 1 — Per-project (recommended)
+### Claude Code
 
-Copy the skill files you want into your project's `.claude/commands/` directory:
+Copy the commands you want into your project's `.claude/commands/` directory:
 
 ```bash
 cp .claude/commands/jadu-bidar.md /your-project/.claude/commands/
 ```
 
-The command is then available inside that project.
-
-### Option 2 — Global (all projects)
-
-Copy into your user-level commands directory:
+Or install all Claude Code commands globally:
 
 ```bash
+mkdir -p ~/.claude/commands
 cp .claude/commands/jadu-*.md ~/.claude/commands/
 ```
 
-The commands become available in every Claude Code session.
+The commands become available as slash commands such as `/jadu-bidar`.
+
+### Codex
+
+Copy the skill folders you want into your project or user-level Codex skills directory:
+
+```bash
+mkdir -p ~/.codex/skills
+cp -R .codex/skills/jadu-* ~/.codex/skills/
+```
+
+Then start a new Codex session and invoke the workflow by name, for example: `jadu-bidar`.
+
+### Shared project guide
+
+For projects that use multiple agents, keep an `AGENTS.md` file in the project root. Jadu’s Codex workflows treat `AGENTS.md` as the primary source of instructions. Claude Code can keep a smaller `CLAUDE.md` that points to the shared guide.
+
+---
+
+## Typical session flow
+
+1. `jadu-zad` — initialize or refresh project context files.
+2. `jadu-bidar` — start a session, pull latest safely, read context, and choose a focus.
+3. `jadu-kar` — add or update tasks as work becomes clearer.
+4. `jadu-payan` — close the session and update docs/tasks from a compact brief.
+5. `jadu-push` or explicit `push` — commit and push only when you intentionally ask for it.
 
 ---
 
 ## Customization
 
 - **Rename the prefix** — the `jadu-` prefix is arbitrary. Rename the files to anything you like (`/start`, `/push`, `/done`) and Claude Code will pick up the new names.
-- **Edit the skill** — each file is plain Markdown. Change the steps, tone, or structure to match your workflow.
-- **Add your own** — create a new `.md` file in `.claude/commands/` and it becomes a slash command immediately.
+- **Edit the workflows** — each command or skill is plain Markdown. Change the steps, tone, or structure to match your workflow.
+- **Keep agents aligned** — when behavior changes, update both `.claude/commands/` and `.codex/skills/`.
+- **Add your own** — create a new `.md` file in `.claude/commands/` for Claude Code, or a new `.codex/skills/<name>/SKILL.md` folder for Codex.
 
 ---
 
-## Optional: sound alerts
+## Optional: 30-minute sound alert
 
-`/jadu-bidar` can play a sound at each focus reminder. It requires `ffplay` (part of `ffmpeg`) and two audio files placed at `~/.claude/sounds/`.
+`jadu-bidar` uses only a 30-minute focus reminder. Claude Code can schedule it when the reminder tool is available. Codex may not have a reminder tool; in that case the skill tells you to set an external 30-minute reminder instead of faking one.
 
-This repo includes the sounds used in the default setup:
+Claude Code can optionally play a sound at each 30-minute reminder. It requires `ffplay` (part of `ffmpeg`) and `30.mp3` placed at `~/.claude/sounds/`.
+
+This repo includes the default sound:
 
 ```bash
 # Install ffmpeg (if not already installed)
 # macOS:  brew install ffmpeg
 # Ubuntu: sudo apt install ffmpeg
 
-# Copy the sound files
+# Copy the sound file
 mkdir -p ~/.claude/sounds
 cp sounds/30.mp3 ~/.claude/sounds/
-cp sounds/60.mp3 ~/.claude/sounds/
 ```
 
-If the files or `ffplay` are not present, the skill skips the sound silently — only the push notification fires.
+If the file or `ffplay` is not present, the workflow skips the sound silently.
 
 ---
 
 ## Contributing
 
-PRs are welcome. All submissions are automatically reviewed by Claude before merge.
+PRs are welcome. Please keep Claude Code commands, Codex skills, and user documentation aligned when changing workflow behavior.

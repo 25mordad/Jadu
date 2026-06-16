@@ -1,38 +1,19 @@
-# Kar — Task Manager
+---
+name: jadu-kar
+description: Conversational task manager for Jadu. Use when the user invokes jadu-kar, asks to add, update, complete, list, review, reprioritize, or reorganize tasks in TASKS.md without executing the task work.
+---
 
-Manages `TASKS.md` in the project root through conversation. Never asks the user to edit the file directly.
+# Jadu Kar — Task Manager
 
-## File format
+Manage `TASKS.md` in the project root through conversation. Never ask the user to edit the file directly.
 
-`TASKS.md` may use this compact structure:
-
-```markdown
-# TASKS
-
-## [P1] Task title — due: YYYY-MM-DD
-**Goal:** one sentence on what done looks like
-**Blocked by:** optional blocker
-- [ ] Subtask A
-- [ ] Subtask B ← depends on A
-- [x] Completed subtask
-
-## Done
-```
-
-Priority levels: `P1` (this week / urgent), `P2` (this sprint / important), `P3` (backlog / someday). Completed tasks stay in the file but are moved to a `## Done` section at the bottom when the whole task is complete.
-
-## Behavior by invocation
+## Modes
 
 Detect which mode applies from the user’s natural-language request.
 
 ### Mode A — Add a new task
 
-1. Ask in one message for any missing details:
-   - Goal / what “done” looks like
-   - Priority: P1, P2, or P3
-   - Due date, or no deadline
-   - Obvious subtasks, or whether to figure them out together
-   - Blockers
+1. Ask in one message for missing details: goal, priority, due date, subtasks, and blockers.
 2. Once clear, write the task to `TASKS.md`. If the file does not exist, create it with a header.
 3. Confirm with a clean summary of the task and where it landed.
 

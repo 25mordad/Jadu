@@ -102,3 +102,41 @@
 - [ ] P2: Set up GitHub Actions for automatic Claude PR review
 
 ---
+
+## 2026-06-16 — Multi-agent Jadu documentation and Codex skills
+
+### What we built
+
+| Feature | Files |
+|---|---|
+| Shared agent guide | `AGENTS.md` |
+| Claude command rename from tamam to payan | `.claude/commands/jadu-payan.md`, `.claude/commands/jadu-tamam.md` deleted |
+| Codex skill set | `.codex/skills/jadu-*/SKILL.md`, `.codex/skills/jadu-*/agents/openai.yaml` |
+| Multi-agent user documentation | `README.md`, `README.fa.md`, `PROJECT.md`, `CLAUDE.md` |
+| 30-minute-only reminder policy | `.claude/commands/jadu-bidar.md`, `.codex/skills/jadu-bidar/SKILL.md`, `sounds/60.mp3` deleted |
+
+### Decisions
+
+#### 1. AGENTS.md as shared source of truth
+**Why:** The repository should support multiple agents instead of being Claude-only.
+**How:** Added `AGENTS.md` for shared rules and kept `CLAUDE.md` as Claude-specific compatibility notes.
+
+#### 2. jadu-payan replaces jadu-tamam
+**Why:** The user wanted the session-end workflow renamed to Payan.
+**How:** Renamed the Claude command and documented the old name only as a migration note.
+
+#### 3. 30-minute reminder only
+**Why:** The user wanted to remove the 60-minute reminder and keep the recurring focus check simple.
+**How:** Removed 60-minute schedule instructions and deleted `sounds/60.mp3`.
+
+### Challenges & Solutions
+
+| Challenge | Solution |
+|---|---|
+| Codex metadata generator stripped `$skill` names from default prompts | Rewrote each `.codex/skills/jadu-*/agents/openai.yaml` prompt manually so it explicitly names the matching skill |
+
+### Pending / TODO
+
+- [ ] Optionally install/update the global Codex skills from this repo copy if desired.
+
+---

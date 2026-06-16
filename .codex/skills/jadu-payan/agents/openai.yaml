@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jadu Payan"
+  short_description: "Close sessions and update docs"
+  default_prompt: "Use $jadu-payan to close this session and update project docs."

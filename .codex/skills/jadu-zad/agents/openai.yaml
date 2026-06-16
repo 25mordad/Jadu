@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jadu Zad"
+  short_description: "Initialize project context files"
+  default_prompt: "Use $jadu-zad to initialize this project context."
