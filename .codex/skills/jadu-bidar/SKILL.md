@@ -1,11 +1,13 @@
 ---
 name: jadu-bidar
-description: Session-start workflow for Jadu. Use when the user invokes jadu-bidar, starts/resumes a project session, wants Codex to inspect project state, pull latest changes safely, review TASKS/WORKLOG/AGENTS context, expand planning subtasks, set or suggest a 30-minute focus reminder, and recommend where to begin without implementing code.
+description: Session-start workflow for Jadu. Use when the user invokes jadu-bidar, starts/resumes a project session, wants Codex to inspect project state, pull latest changes safely, review TASKS/WORKLOG/AGENTS context, expand planning subtasks, and schedule a 30-minute focus reminder without implementing code.
 ---
 
 # Jadu Bidar — Session Start
 
-Start a focused work session by refreshing repository state, reading project context, improving the task plan, and recommending where to begin. This is a planning workflow, not an implementation workflow.
+Called at the beginning of a work session. Studies the project state, expands the task list with new subtasks, and sets focus timers. This is a planning workflow, not an implementation workflow.
+
+The timers serve two purposes: keeping you focused, and keeping sessions short. Shorter sessions mean smaller context windows, which saves tokens and keeps responses sharp.
 
 ## Workflow
 
@@ -17,9 +19,9 @@ Run:
 date '+%M %H %d %m'
 ```
 
-Use it only for the session summary and reminder context.
+You'll need this for the reminder schedule.
 
-### 2. Pull latest from remote when safe
+### 2. Pull latest from remote (if applicable)
 
 Run:
 
@@ -27,65 +29,53 @@ Run:
 git remote get-url origin 2>/dev/null
 ```
 
-If a remote URL exists, run:
-
-```bash
-git pull --ff-only
-```
-
-Report “already up to date” or summarize what changed. If pull fails because of divergence, auth, network, or local changes, report the error and continue without aborting.
+If a remote URL is returned, run `git pull --ff-only`. Report what changed (e.g., "pulled 3 commits") or "already up to date". If the pull fails (e.g. local divergence), report the error and continue without aborting the session.
 
 ### 3. Read project context
 
-Read these if present:
+Read the following in parallel:
 
-- `TASKS.md` — focus on P1/P2 open items and subtasks.
-- `WORKLOG.md` — read the last 80 lines; focus on recent “Pending / TODO”.
+- `TASKS.md` — the primary task list; focus on P1 and P2 open items and their subtasks.
+- `WORKLOG.md` (last 80 lines) — focus on the most recent session's **Pending / TODO**.
+- `git log --oneline -20` — understand what was last worked on.
 - `AGENTS.md` — shared agent instructions, architecture notes, approval rules, commands, and conventions.
-- `CLAUDE.md` — read only if present for Claude compatibility context.
-- `PROJECT.md` and `README.md` — skim if present for project identity/setup.
-- `git log --oneline -20` — understand recent work.
+- `CLAUDE.md` — read only if present, for Claude compatibility context.
 
-Skim, but do not deep-read, 2–3 recently modified files indicated by git history or status. Do not modify implementation files.
+Skim, but do not deep-read, 2–3 recently modified files from the git log to understand the current shape of the code.
 
-### 4. Expand `TASKS.md` planning only
+### 4. Expand the task list
 
-If `TASKS.md` exists, add useful subtasks under relevant existing open task blocks. Follow these rules:
+Add new subtasks to open tasks in `TASKS.md`. Rules:
 
-- Do not execute feature work.
-- Add only subtasks that logically follow from existing work or partially started items.
-- Break vague items into concrete, actionable lines.
-- Flag dependencies inline, e.g. `← depends on [name]`.
+- Do not execute anything — only plan.
+- Add subtasks that logically follow from what's already done or partially started.
+- Break vague items into concrete, actionable steps.
+- Flag dependencies between subtasks inline with `← depends on [name]`.
 - Keep each new item one line, prefixed with `- [ ]`.
-- Add subtasks under existing task blocks; do not create new top-level priorities unless the user asked.
-- Do not remove, check off, or re-prioritize existing items.
-- If repository instructions require approval before file changes, present the proposed `TASKS.md` edits and wait for explicit permission before editing.
+- Add new subtasks under the relevant existing task block — do not create new top-level tasks.
+- Do not remove, check off, or re-prioritize any existing items.
 
 If `TASKS.md` is missing, propose creating one but do not create it without approval.
 
-### 5. Focus reminder: 30 minutes only
+### 5. Schedule 30-minute recurring reminder
 
-If an explicit reminder/timer tool is available in the current environment, set one recurring reminder:
+If a recurring reminder/timer tool is available in the current environment, schedule one every 30 minutes with the message: "⏱ 30 min — check your focus, review progress on current task". If a sound step is supported, play `~/.claude/sounds/30.mp3` when available.
 
-- 30-minute recurring reminder: “⏱ 30 min — check your focus, review progress on current task”
-
-If no timer tool is available, do not fake it and do not create OS-level cron jobs. Report that timers are unavailable in this Codex surface and suggest the user set an external 30-minute reminder.
+If no reminder/timer tool is available, do not fake it and do not create OS-level cron jobs. Tell the user to set an external 30-minute reminder.
 
 ### 6. Report back
 
 Print a short summary:
 
-- current time snapshot
-- remote pull status
-- which context files were found/read
-- how many new subtasks were added, or proposed if approval was required
-- whether the 30-minute focus reminder was set or unavailable
-- one-line suggestion for where to start
+- How many new subtasks were added and what area they cover.
+- Confirmation that the 30-minute recurring timer is set (or unavailable).
+- One-line suggestion for where to start.
+
+Do not ask for confirmation at any step — just do it.
 
 ## Rules
 
 - Treat this as planning/session setup only.
 - Do not implement feature/code changes.
 - Obey repository `AGENTS.md` and user approval rules before changing files.
-- Continue gracefully when optional files are missing.
 - Keep only the 30-minute reminder; do not add 60-minute reminders.

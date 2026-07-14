@@ -13,8 +13,8 @@
 | Bidar | `/jadu-bidar` | skill `jadu-bidar` | شروع جلسه — وضعیت پروژه را می‌خواند، زیروظایف برنامه‌ریزی را کامل‌تر می‌کند، و یادآور تمرکز ۳۰ دقیقه‌ای را تنظیم یا پیشنهاد می‌کند |
 | Zad | `/jadu-zad` | skill `jadu-zad` | ویزارد راه‌اندازی پروژه — سوالات را یک‌جا می‌پرسد و فایل‌های context پروژه را می‌سازد |
 | Kar | `/jadu-kar` | skill `jadu-kar` | مدیریت وظایف از طریق مکالمه در `TASKS.md` |
-| Payan | `/jadu-payan` | skill `jadu-payan` | پایان جلسه — خلاصه فشرده می‌نویسد و مستندات/وظایف را بر اساس آن به‌روزرسانی می‌کند |
-| Push | `/jadu-push` | skill `jadu-push` | stage، commit و push فقط وقتی کاربر صریحاً درخواست کند |
+| Payan | `/jadu-payan` | skill `jadu-payan` | پایان جلسه — بدون خلاصه، به‌صورت مستقیم مستندات/وظایف را به‌روزرسانی می‌کند و در پایان به‌طور خودکار commit و push می‌کند |
+| Push | `/jadu-push` | skill `jadu-push` | stage، commit و push در هر زمان دیگری غیر از پایان جلسه، به‌صورت جداگانه |
 
 `jadu-tamam` به `jadu-payan` تغییر نام داده است.
 
@@ -59,8 +59,8 @@ cp -R .codex/skills/jadu-* ~/.codex/skills/
 1. `jadu-zad` — ساخت یا به‌روزرسانی فایل‌های context پروژه.
 2. `jadu-bidar` — شروع جلسه، pull امن، خواندن context و انتخاب تمرکز.
 3. `jadu-kar` — اضافه یا به‌روزرسانی وظایف.
-4. `jadu-payan` — بستن جلسه و به‌روزرسانی مستندات.
-5. `jadu-push` یا درخواست صریح `push` — commit و push فقط با درخواست واضح.
+4. `jadu-payan` — بستن مستقیم جلسه، به‌روزرسانی مستندات/وظایف، و سپس commit و push خودکار.
+5. `jadu-push` یا درخواست صریح `push` — commit و push در هر زمانی جز لحظه بستن جلسه.
 
 ---
 

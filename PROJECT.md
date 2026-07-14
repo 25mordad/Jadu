@@ -4,7 +4,7 @@
 
 ## Overview
 
-Jadu (جادو — "magic") is a public template repository of reusable agent workflows that streamline common project sessions: starting work, initializing context, managing tasks, closing sessions, and pushing changes when explicitly requested. It is designed to be cloned, forked, or used as inspiration for building your own command or skill set across Claude Code and Codex.
+Jadu (جادو — "magic") is a public template repository of reusable agent workflows that streamline common project sessions: starting work, initializing context, managing tasks, closing sessions (which commits and pushes automatically), and pushing changes on demand outside a session close. It is designed to be cloned, forked, or used as inspiration for building your own command or skill set across Claude Code and Codex.
 
 ## Tech Stack
 

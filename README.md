@@ -15,8 +15,8 @@ A collection of AI-agent workflow skills for structured, productive project sess
 | Bidar | `/jadu-bidar` | `jadu-bidar` skill | Session start — reads project state, expands planning subtasks, and sets or suggests a 30-minute focus reminder |
 | Zad | `/jadu-zad` | `jadu-zad` skill | Project initialization wizard — asks setup questions once and writes project context files |
 | Kar | `/jadu-kar` | `jadu-kar` skill | Conversational task manager — add, update, review, and complete tasks in `TASKS.md` |
-| Payan | `/jadu-payan` | `jadu-payan` skill | Session end — writes a compact brief and updates docs/tasks from that brief |
-| Push | `/jadu-push` | `jadu-push` skill | Stage changes, write a concise commit, and push only when explicitly requested |
+| Payan | `/jadu-payan` | `jadu-payan` skill | Session end — inline close (no brief), updates docs/tasks, then commits and pushes automatically |
+| Push | `/jadu-push` | `jadu-push` skill | Stage changes, write a concise commit, and push on demand any time outside of a session close |
 
 `jadu-tamam` was renamed to `jadu-payan`.
 
@@ -63,8 +63,8 @@ For projects that use multiple agents, keep an `AGENTS.md` file in the project r
 1. `jadu-zad` — initialize or refresh project context files.
 2. `jadu-bidar` — start a session, pull latest safely, read context, and choose a focus.
 3. `jadu-kar` — add or update tasks as work becomes clearer.
-4. `jadu-payan` — close the session and update docs/tasks from a compact brief.
-5. `jadu-push` or explicit `push` — commit and push only when you intentionally ask for it.
+4. `jadu-payan` — close the session inline, update docs/tasks, and commit + push automatically.
+5. `jadu-push` or explicit `push` — commit and push on demand any time you're not closing the session.
 
 ---
 

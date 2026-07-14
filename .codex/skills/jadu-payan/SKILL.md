@@ -1,104 +1,71 @@
 ---
 name: jadu-payan
-description: Session-end workflow for Jadu. Use when the user invokes jadu-payan, says the session is ending, asks to wrap up, update WORKLOG/TASKS/AGENTS/CLAUDE/README from the conversation, archive long worklogs, or prepare a session-close summary. Never push unless the user explicitly asks to push.
+description: Session-end workflow for Jadu. Use when the user invokes jadu-payan, says the session is ending, asks to wrap up, update WORKLOG/TASKS/AGENTS/CLAUDE/README from the conversation, archive long worklogs, or close out with a commit and push. Inline, no session brief.
 ---
 
 # Jadu Payan — Session End
 
-Close a work session by producing a compact session brief, updating project documentation from that brief, and reporting what changed. The brief is the source of truth; do not infer unmentioned work from git history.
+Inline session close. No agents, no briefs. Just do it.
 
 ## Workflow
 
-### 1. Write the session brief first
+### 1. Resolve working directory
 
-Synthesize the session from the conversation only. Do not read files for this step. Keep the brief under 35 lines and omit empty sections.
-
-Use this exact format:
-
-```text
-SESSION BRIEF
-Date: YYYY-MM-DD
-Title: <short session title>
-
-BUILT:
-- <feature or change> | files: <key files touched>
-
-DECISIONS:
-- <title>: why=<reason> | how=<approach>
-
-CHALLENGES:
-- <challenge> → <solution>
-
-PENDING:
-- [ ] <item>
-
-AGENTS_MD_CHANGES: yes|no — <what changed structurally, or omit if no>
-CLAUDE_MD_CHANGES: yes|no — <what changed structurally, or omit if no>
-README_CHANGES: yes|no — <what changed for new users/devs, or omit if no>
-MEMORY_CHANGES: yes|no — <new durable preference/pattern to save, or omit if no>
-```
-
-Output the brief visibly in a code block so the user can review it.
+Run `pwd`. Stay in this directory for all steps.
 
 ### 2. Update `WORKLOG.md`
 
-Read or create `WORKLOG.md` as needed. Append a dated entry, omitting empty sections. Focus on why decisions were made, not just what changed.
+Read the last 80 lines first. Append a new dated entry covering what was built, key decisions (with why), challenges & solutions, and pending/TODO items. Focus on WHY decisions were made, not just what. Omit empty sections.
 
 ### 3. Update `TASKS.md`
 
-If `TASKS.md` exists:
-
-- Mark completed tasks `[x]` only when completion is clear from the session brief.
-- Move fully done blocks to `## Done` with a one-line summary and date.
-- Add new pending subtasks under relevant parent tasks.
+- Mark completed tasks `[x]`.
+- Add new subtasks under relevant parent tasks.
 - Do not remove or re-prioritize open items.
 
-If `TASKS.md` is missing and the brief has pending items, propose or create a minimal task list depending on repository approval rules.
+### 4. Update `AGENTS.md` / `CLAUDE.md`
 
-### 4. Update project guides only when flagged
+Only if something structural changed: new scripts, new architecture patterns, changed commands, changed conventions. Update `AGENTS.md` for shared/agent-neutral changes and `CLAUDE.md` only for Claude-specific compatibility notes. Skip otherwise.
 
-- Update `AGENTS.md` only if `AGENTS_MD_CHANGES=yes` and the change is structural: new commands, architecture patterns, workflows, setup rules, or changed conventions.
-- Update `CLAUDE.md` only if `CLAUDE_MD_CHANGES=yes` and Claude compatibility notes changed.
-- Update `README.md` only if `README_CHANGES=yes`, such as new installation steps, commands, workflow names, env vars, or feature flags.
+### 5. Update `README.md`
 
-### 5. Save memory only when flagged
+Only if new CLI commands, setup steps, or env vars were added. Skip otherwise.
 
-If `MEMORY_CHANGES=yes`, write durable preferences/patterns to the project memory system if one exists. If no memory convention exists, ask before creating a new memory directory.
+### 6. Save memory
 
-### 6. Git behavior
+If a persistent memory system is available for this agent surface, write any new feedback/preferences/project facts there and update its index. Skip if nothing new or no memory system exists.
 
-Inspect status and report dirty files when useful. Do not run `git push` unless the user explicitly asked to push in this turn.
+### 7. Archive
 
-If the user explicitly says “push”, follow the global push behavior:
+**`WORKLOG.md`** — if it exceeds 120 lines OR has more than 4 session entries (count `## 20` headings):
+1. Create `WORKLOG_ARCHIVE.md` if it doesn't exist.
+2. Move all entries except the 2 most recent to the top of `WORKLOG_ARCHIVE.md`.
+3. Keep the `WORKLOG.md` header intact.
+4. Ensure `WORKLOG.md` ends with: `> Older entries archived in WORKLOG_ARCHIVE.md`.
 
-1. `git add -A`
-2. `git commit -m "<short auto-generated summary>"` unless the user provided a commit message
-3. `git push`
+**`TASKS.md`** — if it exceeds 200 lines:
+1. Create `TASKS_ARCHIVE.md` if it doesn't exist.
+2. Move any top-level task block where all subtasks are `[x]` to the top of `TASKS_ARCHIVE.md`, with a `### Done YYYY-MM-DD` header.
+3. Keep all open/partial blocks in `TASKS.md`.
 
-For normal `jadu-payan` without explicit push:
+### 8. Commit and push
 
-- Do not push.
-- Do not auto-commit unless the user explicitly requested a commit.
-- It is OK to stage/commit only when explicitly requested; otherwise just report what changed.
+```bash
+git add -A
+git status --short
+git diff --cached --quiet && echo "nothing_to_commit" || git commit -m "chore: session close — <title>"
+git push
+```
 
-### 7. Archive `WORKLOG.md` if needed
+If no remote exists, skip silently.
 
-Archive when `WORKLOG.md` exceeds 250 lines or contains more than 8 session entries matching `## 20` headings.
+### 9. Report back
 
-### 8. Report back
-
-End with a concise report:
-
-- what was updated
-- what was skipped and why
-- whether archiving ran
-- whether git commit/push was skipped or run
-
-Then print: `Session closed. If staying in this tab for another session, consider clearing/compacting context before starting again with jadu-bidar.`
+Report what was updated, what was skipped, whether archiving ran, and whether git pushed. Then print: "Session closed."
 
 ## Rules
 
-- The session brief is the source of truth; do not invent work from code or git history.
-- Obey repository `AGENTS.md` approval rules before editing docs when required.
-- Never run `git push` unless the user explicitly asks to push.
+- Do not ask for confirmation at any step — just do it.
+- Stay in the resolved working directory for the whole workflow.
+- Closing a session is treated as the user's explicit request to push; always commit and push in step 8.
 - Prefer documentation/task updates only; do not change implementation files as part of session close.

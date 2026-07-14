@@ -16,8 +16,8 @@ Jadu is a public collection of reusable AI-agent workflows for structured projec
 | Bidar | Start/resume a session | `/jadu-bidar` | `jadu-bidar` skill |
 | Zad | Initialize project context | `/jadu-zad` | `jadu-zad` skill |
 | Kar | Manage tasks | `/jadu-kar` | `jadu-kar` skill |
-| Payan | Close a session | `/jadu-payan` | `jadu-payan` skill |
-| Push | Commit and push explicitly | `/jadu-push` | `jadu-push` skill or explicit `push` request |
+| Payan | Close a session (commits and pushes automatically at the end) | `/jadu-payan` | `jadu-payan` skill |
+| Push | Commit and push on demand, outside a session close | `/jadu-push` | `jadu-push` skill or explicit `push` request |
 
 `jadu-tamam` has been renamed to `jadu-payan`. Do not add new references to `jadu-tamam` except as historical migration notes.
 
@@ -44,8 +44,8 @@ Jadu is a public collection of reusable AI-agent workflows for structured projec
 - Then confirm the exact intended path, scope, and implementation plan.
 - Start coding or changing implementation files only after the user explicitly gives permission.
 - Documentation and task-file updates requested by the user are allowed, but feature/code changes require explicit approval first.
-- Never run `git push` unless the user explicitly asks to push.
-- When the user says `push`, run `git add -A`, commit with a short summary of the staged changes unless the user supplied a message, then `git push`.
+- Never run `git push` unless the user explicitly asks to push, with one exception: `jadu-payan` always commits and pushes as its final step, since closing a session is treated as that explicit request.
+- When the user says `push` outside of `jadu-payan`, run `git add -A`, commit with a short summary of the staged changes unless the user supplied a message, then `git push`.
 
 ## Maintenance checklist
 

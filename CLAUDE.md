@@ -13,7 +13,7 @@ Jadu is a public collection of reusable AI-agent workflows for structured projec
 | `/jadu-bidar` | Start or resume a session, read project context, update planning subtasks, and set a 30-minute focus reminder when available |
 | `/jadu-zad` | Initialize project context files such as `PROJECT.md`, `AGENTS.md`, optional `CLAUDE.md`, and `TASKS.md` |
 | `/jadu-kar` | Manage `TASKS.md` through conversation |
-| `/jadu-payan` | Close a session by writing a session brief and updating project docs |
+| `/jadu-payan` | Close a session inline (no brief), update project docs, and commit + push automatically as the final step |
 | `/jadu-push` | Stage, commit, and push only when the user explicitly invokes it |
 
 `/jadu-tamam` was renamed to `/jadu-payan`.
@@ -25,7 +25,7 @@ Jadu is a public collection of reusable AI-agent workflows for structured projec
 - Use agent-neutral language unless documenting a Claude-only feature.
 - Keep each command self-contained enough to work without hidden conversation context.
 - Do not reintroduce 60-minute reminders; Jadu uses only the 30-minute reminder.
-- Never push unless the user explicitly asks.
+- Never push unless the user explicitly asks, except `/jadu-payan`, which always commits and pushes as its last step by design.
 
 ## PR review workflow
 
