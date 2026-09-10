@@ -1,18 +1,16 @@
 # Bidar — Session Start
 
-Called at the beginning of a work session. Studies the project state, expands the task list with new subtasks, and sets focus timers.
-
-The timers serve two purposes: keeping you focused, and keeping sessions short. Shorter sessions mean smaller context windows, which saves tokens and keeps responses sharp.
+Called at the beginning of a work session. Studies the project state and expands the task list with new subtasks.
 
 ## Steps
 
-### 1. Get current time
-
-Run `date '+%M %H %d %m'` to get current minute, hour, day-of-month, and month. You'll need this for the reminder schedule.
-
-### 2. Pull latest from remote (if applicable)
+### 1. Pull latest from remote (if applicable)
 
 Run `git remote get-url origin 2>/dev/null`. If a remote URL is returned, run `git pull --ff-only`. Report what changed (e.g., "pulled 3 commits") or "already up to date". If the pull fails (e.g. local divergence), report the error and continue without aborting the session.
+
+### 2. Check for a blocked jadu-loop task
+
+If `LOOP_TASK.md` exists in the project root, read its `STATUS` line and, if `STATUS: blocked`, the reason noted on the blocked subtask. This must be the first thing surfaced in step 5's report — a returning session should learn about a stuck autonomous task immediately, before anything else. If `LOOP_TASK.md` doesn't exist or `STATUS` isn't `blocked`, say nothing about it.
 
 ### 3. Read project context
 
@@ -38,20 +36,11 @@ Add new subtasks to open tasks in `TASKS.md`. Rules:
 
 If `TASKS.md` is missing, propose creating one but do not create it without approval.
 
-### 5. Schedule 30-minute recurring reminder
-
-Call `CronCreate` with:
-- `cron`: `"*/30 * * * *"` (every 30 minutes)
-- `recurring`: true
-- `prompt`: `"Run this Bash command (ignore any errors): command -v ffplay >/dev/null 2>&1 && [ -f ~/.claude/sounds/30.mp3 ] && ffplay -nodisp -autoexit ~/.claude/sounds/30.mp3 >/dev/null 2>&1 & Then send a PushNotification with message: '⏱ 30 min — check your focus, review progress on current task'"`
-
-If `CronCreate` is unavailable in the current environment, do not fake it and do not create OS-level cron jobs. Tell the user to set an external 30-minute reminder.
-
-### 6. Report back
+### 5. Report back
 
 Print a short summary:
+- If step 2 found a blocked jadu-loop task, lead with that — branch name and blocking reason
 - How many new subtasks were added and what area they cover
-- Confirmation that the 30-minute recurring timer is set (or unavailable)
 - One-line suggestion for where to start
 
 Do NOT ask for confirmation at any step — just do it.
@@ -61,4 +50,3 @@ Do NOT ask for confirmation at any step — just do it.
 - Treat this as planning/session setup only.
 - Do not implement feature/code changes.
 - Obey `AGENTS.md` approval rules before changing files.
-- Keep only the 30-minute reminder; do not add 60-minute reminders.

@@ -12,11 +12,10 @@ A collection of AI-agent workflow skills for structured, productive project sess
 
 | Workflow | Claude Code | Codex | What it does |
 |---|---|---|---|
-| Bidar | `/jadu-bidar` | `jadu-bidar` skill | Session start — reads project state, expands planning subtasks, and sets or suggests a 30-minute focus reminder |
+| Bidar | `/jadu-bidar` | `jadu-bidar` skill | Session start — reads project state and expands planning subtasks |
 | Zad | `/jadu-zad` | `jadu-zad` skill | Project initialization wizard — asks setup questions once and writes project context files |
-| Kar | `/jadu-kar` | `jadu-kar` skill | Conversational task manager — add, update, review, and complete tasks in `TASKS.md` |
 | Payan | `/jadu-payan` | `jadu-payan` skill | Session end — inline close (no brief), updates docs/tasks, then commits and pushes automatically |
-| Push | `/jadu-push` | `jadu-push` skill | Stage changes, write a concise commit, and push on demand any time outside of a session close |
+| Loop | `/jadu-loop` | `jadu-loop` skill | **Opt-in, off by default.** Autonomous execution of pre-approved subtasks from `LOOP_TASK.md` — no per-step approval. See [Loop setup](#loop-setup-opt-in) below |
 
 `jadu-tamam` was renamed to `jadu-payan`.
 
@@ -62,9 +61,22 @@ For projects that use multiple agents, keep an `AGENTS.md` file in the project r
 
 1. `jadu-zad` — initialize or refresh project context files.
 2. `jadu-bidar` — start a session, pull latest safely, read context, and choose a focus.
-3. `jadu-kar` — add or update tasks as work becomes clearer.
-4. `jadu-payan` — close the session inline, update docs/tasks, and commit + push automatically.
-5. `jadu-push` or explicit `push` — commit and push on demand any time you're not closing the session.
+3. `jadu-payan` — close the session inline, update docs/tasks, and commit + push automatically.
+4. An explicit `push` request — commit and push on demand any time you're not closing the session.
+
+---
+
+## Loop setup (opt-in)
+
+`jadu-loop` is different from the other three workflows: it's the one deliberate exception to "never implement without explicit signal," so it needs a few extra pieces installed and a human-authored task file before it can run at all. Nothing here happens automatically just by copying `jadu-loop.md`/`jadu-loop`'s skill folder in.
+
+1. Copy the command/skill as usual (see "How to use" above).
+2. Copy the supporting scripts: `cp -R scripts/jadu-loop /your-project/scripts/` — see [`scripts/jadu-loop/README.md`](scripts/jadu-loop/README.md) for what each one does and how to install its one dependency (`python-dotenv`) and, optionally, Telegram notifications.
+3. Create `LOOP_TASK.md` in your project root from [`templates/jadu-loop/LOOP_TASK.skeleton.md`](templates/jadu-loop/LOOP_TASK.skeleton.md), or start from the fully worked [`templates/jadu-loop/LOOP_TASK.example.md`](templates/jadu-loop/LOOP_TASK.example.md).
+4. **Read [`docs/jadu-loop-authoring-guide.md`](docs/jadu-loop-authoring-guide.md) before writing your first real task.** Every rule in it maps to a bug that actually shipped in an unattended run — it's short, and skipping it is how those bugs happen again.
+5. Create a tracked `LOOP_TASK_ARCHIVE/` directory (completed task files move there) and gitignore `.loop_state/` (local run state only).
+6. Add whatever commands your subtasks will run to your agent's shell allowlist *before* running the loop — it can't expand its own permissions mid-run.
+7. Run it: `python3 scripts/jadu-loop/check_loop_queue.py && python3 scripts/jadu-loop/check_usage_margin.py && claude -p "/jadu-loop" --permission-mode acceptEdits` — by hand, or wrapped in your own `while ... sleep N; done` loop for a long unattended task. **Do not wire this to `cron` unless you've deliberately decided to** — see the Customization/Repository-rules notes on cron below.
 
 ---
 
@@ -74,28 +86,6 @@ For projects that use multiple agents, keep an `AGENTS.md` file in the project r
 - **Edit the workflows** — each command or skill is plain Markdown. Change the steps, tone, or structure to match your workflow.
 - **Keep agents aligned** — when behavior changes, update both `.claude/commands/` and `.codex/skills/`.
 - **Add your own** — create a new `.md` file in `.claude/commands/` for Claude Code, or a new `.codex/skills/<name>/SKILL.md` folder for Codex.
-
----
-
-## Optional: 30-minute sound alert
-
-`jadu-bidar` uses only a 30-minute focus reminder. Claude Code can schedule it when the reminder tool is available. Codex may not have a reminder tool; in that case the skill tells you to set an external 30-minute reminder instead of faking one.
-
-Claude Code can optionally play a sound at each 30-minute reminder. It requires `ffplay` (part of `ffmpeg`) and `30.mp3` placed at `~/.claude/sounds/`.
-
-This repo includes the default sound:
-
-```bash
-# Install ffmpeg (if not already installed)
-# macOS:  brew install ffmpeg
-# Ubuntu: sudo apt install ffmpeg
-
-# Copy the sound file
-mkdir -p ~/.claude/sounds
-cp sounds/30.mp3 ~/.claude/sounds/
-```
-
-If the file or `ffplay` is not present, the workflow skips the sound silently.
 
 ---
 

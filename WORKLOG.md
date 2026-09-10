@@ -2,107 +2,6 @@
 
 ---
 
-## 2026-05-30 — Project Kickoff
-
-### What we built
-
-| Feature | Files |
-|---|---|
-| Project identity & conventions | `PROJECT.md` |
-| Claude-specific guide & PR review rules | `CLAUDE.md` |
-| Launch task list | `TASKS.md` |
-
-### Decisions
-
-#### 1. Name: Jadu (جادو)
-**Why:** Wanted a Persian-style name that felt cool and approachable. Candidates were Farman (command), Sorush (herald), Jadu (magic), Simorgh (mythical bird). Jadu won for being short, memorable, and capturing the "it just works" feel of a good command kit.
-**How:** Used as the repo name and title across all project docs.
-
-#### 2. Public repo as a skills template
-**Why:** The `bobo-` prefixed Claude Code skills (init-project, wrap-it-up, study-project, push, todo) are useful enough to share. Making it public lets others fork and adapt them.
-**How:** Repo will be published on GitHub with auto Claude review on all PRs.
-
-#### 3. Accept all public PRs, reviewed by Claude
-**Why:** Low friction for contributors, Claude review provides a quality gate without requiring manual attention on every PR.
-**How:** To be wired up via GitHub Actions (pending task).
-
-### Pending / TODO
-
-- [ ] Write README
-- [ ] Initialize git and push to GitHub
-- [ ] Set up GitHub Actions for automatic Claude PR review
-
----
-
-## 2026-05-30 — Launch Session
-
-### What we built
-
-| Feature | Files |
-|---|---|
-| Skill collection in repo | `.claude/commands/bobo-*.md` (5 files) |
-| English README | `README.md` |
-| Farsi README | `README.fa.md` |
-| Gitignore | `.gitignore` |
-| Initial commit + push to GitHub | `github.com/25mordad/Jadu` |
-
-### Decisions
-
-#### 1. bobo-init-project generalised for non-IT projects
-**Why:** The skill was software-centric (languages, frameworks, databases). Users may want to initialise non-code projects — file management, writing, personal workflows — without irrelevant questions.
-**How:** Replaced "Tech Stack" section with "Tools & Setup" (answer what's relevant, skip the rest). Updated PROJECT.md and CLAUDE.md templates to match. Example names changed to "25mordad".
-
-#### 2. Token-saving rationale added to bobo-study-project
-**Why:** The 30/60 min timers aren't just focus tools — bounded sessions keep context windows short, which directly saves tokens. Worth stating explicitly so users understand the full benefit.
-**How:** Added one paragraph to the skill's description.
-
-#### 3. settings.local.json and scheduled_tasks.* added to .gitignore
-**Why:** Local Claude session artifacts — durable cron jobs and local permission overrides — should never be shared with contributors.
-**How:** Added three entries to `.gitignore`.
-
-#### 4. Farsi README as a separate file
-**Why:** A full translation alongside English in one file would make both harder to read. A separate file keeps each clean and lets GitHub render it properly.
-**How:** Created `README.fa.md`, linked from top of `README.md`.
-
-### Pending / TODO
-
-- [ ] Add license badge and link to README
-- [ ] Set up GitHub Actions for automatic Claude PR review (P2)
-
----
-
-## 2026-06-04 — Full jadu-* skill rename, license, and sound setup
-
-### What we built
-
-| Feature | Files |
-|---|---|
-| 5 new jadu-* skill files (bidar, tamam, zad, push, kar) | `.claude/commands/jadu-*.md` |
-| Removed all bobo-*.md files | `.claude/commands/bobo-*.md` (deleted) |
-| MIT LICENSE | `LICENSE` |
-| Sound files for focus reminders | `sounds/30.mp3`, `sounds/60.mp3` |
-| Updated skill docs and lists | `README.md`, `README.fa.md`, `CLAUDE.md`, `TASKS.md` |
-
-### Decisions
-
-#### 1. Persian skill naming (bidar, tamam, zad, kar, push)
-**Why:** User wanted skill names with cultural resonance tied to the project name Jadu (جادو — magic). The bobo- prefix was personal/arbitrary; jadu- gives the commands a consistent identity and makes the collection feel coherent rather than piecemeal.
-**How:** Each skill was mapped to a Persian word: bidar (بیدار, awake) = session start, tamam (تمام, done) = session end, zad (زاد, born/created) = project init, kar (کار, work) = tasks, jadu-push = push. All bobo-*.md files removed after new versions verified.
-
-#### 2. jadu-tamam uses background agent approach
-**Why:** Session-end wrap-up involves reading multiple files and writing several updates. Doing it inline consumes a large slice of the remaining context. Delegating to a background agent keeps the foreground context cheap and fast.
-**How:** jadu-tamam writes a compact inline brief capturing only what changed, then spawns a background agent with that brief as the sole source of truth — mirroring the pattern in the global bobo-wrap-it-up skill.
-
-#### 3. Sound files included in repo with graceful fallback
-**Why:** Audio focus reminders are useful but not universal — public users won't have ~/.claude/sounds/ set up. Shipping the files in the repo lets users opt in without hunting for audio assets, while the fallback ensures the skill never breaks for users who skip setup.
-**How:** `sounds/` directory added to repo. jadu-bidar guards playback with `command -v ffplay && [ -f file ]` before attempting to play. README includes an optional setup section for sound configuration.
-
-### Pending / TODO
-
-- [ ] P2: Set up GitHub Actions for automatic Claude PR review
-
----
-
 ## 2026-06-16 — Multi-agent Jadu documentation and Codex skills
 
 ### What we built
@@ -140,3 +39,50 @@
 - [ ] Optionally install/update the global Codex skills from this repo copy if desired.
 
 ---
+
+## 2026-09-10 — Add jadu-loop, retire jadu-kar/jadu-push and the sound-reminder feature
+
+### What we built
+
+| Feature | Files |
+|---|---|
+| New `jadu-loop` workflow (opt-in, autonomous `LOOP_TASK.md` subtask execution) | `.claude/commands/jadu-loop.md`, `.codex/skills/jadu-loop/` |
+| Supporting scripts (queue gate, usage-margin gate, Telegram notifier) | `scripts/jadu-loop/*.py`, `scripts/jadu-loop/README.md` |
+| `LOOP_TASK.md` templates (blank + worked example) | `templates/jadu-loop/*.md` |
+| Authoring rules distilled from a real multi-day run elsewhere | `docs/jadu-loop-authoring-guide.md` |
+| `jadu-kar` and `jadu-push` removed entirely | `.claude/commands/jadu-kar.md`, `jadu-push.md`, `.codex/skills/jadu-kar/`, `jadu-push/` deleted |
+| Sound/focus-reminder feature removed entirely | `sounds/30.mp3` deleted, `AGENTS.md` "Focus reminder policy" section removed |
+| `jadu-bidar` cleanup + jadu-loop awareness | `.claude/commands/jadu-bidar.md`, `.codex/skills/jadu-bidar/SKILL.md` |
+| `jadu-payan` push-check fix + Claude/Codex parity | `.claude/commands/jadu-payan.md`, `.codex/skills/jadu-payan/SKILL.md` |
+| Docs refreshed to match | `README.md`, `README.fa.md`, `AGENTS.md`, `CLAUDE.md`, `PROJECT.md` |
+| Oldest 3 worklog entries archived | `WORKLOG_ARCHIVE.md` created |
+
+### Decisions
+
+#### 1. jadu-loop ported in as a genericized, opt-in workflow
+**Why:** The mechanism (a human writes fully-specified `ACTION`/`VERIFY` subtasks into `LOOP_TASK.md`, an agent executes them unattended with no per-step approval) was proven on another project over a real multi-day, 30+ subtask run — including several authoring bugs that only surfaced once the loop actually hit them. Worth sharing as a Jadu workflow rather than staying project-specific.
+**How:** Ported the command/skill, gate/usage/notify scripts, and templates, stripping every project-specific reference (branding, personal Telegram setup, framework-specific test commands). The hard-won lessons became `docs/jadu-loop-authoring-guide.md` so they're not lost in translation. Explicitly documented as the one deliberate exception to Jadu's normal "confirm before implementing" rule — see the new `AGENTS.md` section.
+
+#### 2. jadu-kar and jadu-push removed
+**Why:** User decision — not explained further beyond wanting them gone. No functional dependency on either remained after removal (jadu-payan and jadu-loop don't call them).
+**How:** Deleted both commands/skills, their table rows, and their mentions in the "Typical session flow" section of both READMEs. `jadu-payan`'s "explicit push request" fallback description was kept (a user can still just ask to push), but the standing `AGENTS.md` rule that auto-triggered `add + commit + push` on the bare word "push" was removed along with `jadu-push` itself, since that rule *was* jadu-push's behavior inlined — keeping it would have left jadu-push alive in spirit. Flagged this specific call explicitly to the user rather than assuming silently.
+
+#### 3. Sound/focus-reminder feature removed entirely
+**Why:** User decision, following on from having already trimmed it down to 30-minutes-only in an earlier session (see 2026-06-16 above). Rather than maintaining a shrinking feature, removed it outright.
+**How:** Deleted `sounds/30.mp3` (and the now-empty `sounds/` directory), the `AGENTS.md` "Focus reminder policy" section, and every remaining reference in `CLAUDE.md`/`PROJECT.md`. `jadu-bidar` no longer runs `date '+%M %H %d %m'` — that step existed only to feed the reminder and had gone vestigial.
+
+#### 4. jadu-bidar surfaces a blocked jadu-loop task first
+**Why:** A returning session is exactly the moment a stuck autonomous task most needs to be seen — it's easy to otherwise miss that `LOOP_TASK.md` is sitting at `STATUS: blocked`.
+**How:** Added a step that checks `LOOP_TASK.md`'s `STATUS` (only if the file exists) and, if blocked, requires the final report to lead with it.
+
+#### 5. jadu-payan's "skip push silently if no remote" claim made actually true
+**Why:** Code review while touching this file found the documented behavior wasn't implemented — `git push` ran unconditionally and would have errored (not "skipped silently") in a repo with no remote.
+**How:** Changed the script line to `git remote get-url origin >/dev/null 2>&1 && git push` in both the Claude command and the Codex skill, so the `&&` short-circuit actually produces the documented behavior. Also brought the Claude command's `Rules` section up to parity with the Codex skill's (it was missing the "documentation/task updates only" and "closing = explicit push request" rules).
+
+### Pending / TODO
+
+- [ ] P2: Set up GitHub Actions for automatic Claude PR review (carried over, still open)
+
+---
+
+> Older entries archived in WORKLOG_ARCHIVE.md

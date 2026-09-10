@@ -15,11 +15,21 @@ Jadu is a public collection of reusable AI-agent workflows for structured projec
 |---|---|---|---|
 | Bidar | Start/resume a session | `/jadu-bidar` | `jadu-bidar` skill |
 | Zad | Initialize project context | `/jadu-zad` | `jadu-zad` skill |
-| Kar | Manage tasks | `/jadu-kar` | `jadu-kar` skill |
 | Payan | Close a session (commits and pushes automatically at the end) | `/jadu-payan` | `jadu-payan` skill |
-| Push | Commit and push on demand, outside a session close | `/jadu-push` | `jadu-push` skill or explicit `push` request |
+| Loop | Autonomous, unattended execution of pre-approved subtasks from `LOOP_TASK.md` — opt-in, off by default | `/jadu-loop` | `jadu-loop` skill |
 
 `jadu-tamam` has been renamed to `jadu-payan`. Do not add new references to `jadu-tamam` except as historical migration notes.
+
+## Jadu Loop is a deliberate exception, not a precedent
+
+`jadu-loop` (see `scripts/jadu-loop/`, `templates/jadu-loop/`, `docs/jadu-loop-authoring-guide.md`) is the one Jadu workflow that implements without per-step approval. It is safe only because of what it refuses to do:
+
+- It only ever executes subtasks a human already wrote, fully specified, into a project's own `LOOP_TASK.md` during a normal supervised session.
+- It never plans, decides, reads context beyond a subtask's own `ACTION`, or runs a broad search to fill a gap in an underspecified subtask.
+- It never expands its own permissions — shell commands stay gated by whatever allowlist the project's agent surface already has configured.
+- A `VERIFY` failure gets exactly one targeted fix attempt, then blocks and waits for a human — never a second guess, never a retry loop.
+
+Do not generalize this pattern to any other Jadu workflow. `jadu-bidar`/`jadu-payan` keep the normal "confirm before implementing" rule.
 
 ## Agent compatibility rules
 
@@ -29,13 +39,7 @@ Jadu is a public collection of reusable AI-agent workflows for structured projec
 - Claude Code workflows live in `.claude/commands/<command-name>.md`.
 - If a tool exists in one agent surface but not another, document a safe fallback instead of assuming the tool exists.
 - Do not create OS-level cron jobs unless the user explicitly asks.
-
-## Focus reminder policy
-
-- Jadu keeps only the 30-minute focus reminder.
-- Do not add 60-minute reminder schedules or `60.mp3` instructions.
-- If a timer/reminder tool is unavailable, tell the user to set an external 30-minute reminder.
-- Optional sound setup should reference only `sounds/30.mp3`.
+- Jadu has no focus-reminder or sound-alert feature. Do not reintroduce one (no `sounds/*.mp3`, no reminder scheduling) without an explicit new request.
 
 ## Repository rules
 
@@ -45,7 +49,6 @@ Jadu is a public collection of reusable AI-agent workflows for structured projec
 - Start coding or changing implementation files only after the user explicitly gives permission.
 - Documentation and task-file updates requested by the user are allowed, but feature/code changes require explicit approval first.
 - Never run `git push` unless the user explicitly asks to push, with one exception: `jadu-payan` always commits and pushes as its final step, since closing a session is treated as that explicit request.
-- When the user says `push` outside of `jadu-payan`, run `git add -A`, commit with a short summary of the staged changes unless the user supplied a message, then `git push`.
 
 ## Maintenance checklist
 
@@ -55,4 +58,4 @@ When changing a workflow:
 2. Update `README.md` and `README.fa.md` if users need to know.
 3. Update this `AGENTS.md` if agent behavior or conventions changed.
 4. Update `CLAUDE.md` only for Claude-specific notes.
-5. Check for stale names with `grep -R "jadu-tamam\|60.mp3\|60-minute" .`.
+5. Check for stale names with `grep -R "jadu-tamam\|jadu-kar\|jadu-push\|60.mp3\|60-minute\|30.mp3\|30-minute" .`.

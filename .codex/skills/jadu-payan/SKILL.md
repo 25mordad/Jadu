@@ -54,14 +54,14 @@ If a persistent memory system is available for this agent surface, write any new
 git add -A
 git status --short
 git diff --cached --quiet && echo "nothing_to_commit" || git commit -m "chore: session close — <title>"
-git push
+git remote get-url origin >/dev/null 2>&1 && git push
 ```
 
-If no remote exists, skip silently.
+The `&&` before `git push` is what makes "no remote → skip silently" actually true — without it, `git push` runs unconditionally and errors when there's no remote.
 
 ### 9. Report back
 
-Report what was updated, what was skipped, whether archiving ran, and whether git pushed. Then print: "Session closed."
+Report what was updated, what was skipped, whether archiving ran, and whether git pushed. Then print: "Session closed. Start a new session and invoke jadu-bidar to begin fresh."
 
 ## Rules
 

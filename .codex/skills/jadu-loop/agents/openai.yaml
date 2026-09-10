@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jadu Loop"
+  short_description: "Autonomous LOOP_TASK.md subtask execution (opt-in)"
+  default_prompt: "Use $jadu-loop to execute the next open subtask(s) in LOOP_TASK.md."

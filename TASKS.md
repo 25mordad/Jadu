@@ -23,6 +23,15 @@
 
 ## Done
 
+- [x] P1 · Add jadu-loop, retire jadu-kar/jadu-push and the sound-reminder feature — 2026-09-10
+  - [x] Port jadu-loop (command, Codex skill, scripts, templates, authoring guide) as a genericized, opt-in workflow
+  - [x] Remove `jadu-kar` and `jadu-push` (commands, skills, table/flow references)
+  - [x] Remove the sound/focus-reminder feature entirely (`sounds/30.mp3`, `AGENTS.md` policy section, vestigial `jadu-bidar` time step)
+  - [x] Make `jadu-bidar` surface a blocked `jadu-loop` task first
+  - [x] Fix `jadu-payan`'s no-remote push check and bring Claude/Codex versions to parity
+  - [x] Refresh README.md, README.fa.md, AGENTS.md, CLAUDE.md, PROJECT.md to match
+  - [x] Archive the oldest 3 worklog entries to `WORKLOG_ARCHIVE.md`
+
 - [x] P2 · Make Jadu multi-agent friendly with Codex skills and Payan rename — 2026-06-16
   - [x] Rename `jadu-tamam` to `jadu-payan`
   - [x] Add `.codex/skills/` versions of Jadu workflows

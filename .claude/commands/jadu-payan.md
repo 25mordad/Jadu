@@ -93,10 +93,10 @@ Write any new feedback/preferences/project facts to `~/.claude/projects/<project
 git add -A
 git status --short
 git diff --cached --quiet && echo "nothing_to_commit" || git commit -m "chore: session close — <title>"
-git push
+git remote get-url origin >/dev/null 2>&1 && git push
 ```
 
-If no remote exists, skip silently.
+The `&&` before `git push` is what makes "no remote → skip silently" actually true — without it, `git push` runs unconditionally and errors when there's no remote.
 
 ---
 
@@ -104,6 +104,8 @@ If no remote exists, skip silently.
 
 - Do NOT ask for confirmation at any step — just do it
 - Do not add agent-specific co-author lines unless the user asks
-- cd into the working directory first
+- cd into the working directory first and stay there for the whole workflow
+- Closing a session is treated as the user's explicit request to push; always attempt it in step 8
+- Prefer documentation/task updates only; do not change implementation files as part of session close
 - Report at the end: what was updated, what was skipped, whether archiving ran, whether git pushed
 - After finishing, print: "Session closed. Run `/clear` then `/jadu-bidar` to start fresh."

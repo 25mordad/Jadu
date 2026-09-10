@@ -1,27 +1,15 @@
 ---
 name: jadu-bidar
-description: Session-start workflow for Jadu. Use when the user invokes jadu-bidar, starts/resumes a project session, wants Codex to inspect project state, pull latest changes safely, review TASKS/WORKLOG/AGENTS context, expand planning subtasks, and schedule a 30-minute focus reminder without implementing code.
+description: Session-start workflow for Jadu. Use when the user invokes jadu-bidar, starts/resumes a project session, wants Codex to inspect project state, pull latest changes safely, review TASKS/WORKLOG/AGENTS context, and expand planning subtasks without implementing code.
 ---
 
 # Jadu Bidar — Session Start
 
-Called at the beginning of a work session. Studies the project state, expands the task list with new subtasks, and sets focus timers. This is a planning workflow, not an implementation workflow.
-
-The timers serve two purposes: keeping you focused, and keeping sessions short. Shorter sessions mean smaller context windows, which saves tokens and keeps responses sharp.
+Called at the beginning of a work session. Studies the project state and expands the task list with new subtasks. This is a planning workflow, not an implementation workflow.
 
 ## Workflow
 
-### 1. Get current time
-
-Run:
-
-```bash
-date '+%M %H %d %m'
-```
-
-You'll need this for the reminder schedule.
-
-### 2. Pull latest from remote (if applicable)
+### 1. Pull latest from remote (if applicable)
 
 Run:
 
@@ -30,6 +18,10 @@ git remote get-url origin 2>/dev/null
 ```
 
 If a remote URL is returned, run `git pull --ff-only`. Report what changed (e.g., "pulled 3 commits") or "already up to date". If the pull fails (e.g. local divergence), report the error and continue without aborting the session.
+
+### 2. Check for a blocked jadu-loop task
+
+If `LOOP_TASK.md` exists in the project root, read its `STATUS` line and, if `STATUS: blocked`, the reason noted on the blocked subtask. This must be the first thing surfaced in step 5's report — a returning session should learn about a stuck autonomous task immediately, before anything else. If `LOOP_TASK.md` doesn't exist or `STATUS` isn't `blocked`, say nothing about it.
 
 ### 3. Read project context
 
@@ -57,18 +49,12 @@ Add new subtasks to open tasks in `TASKS.md`. Rules:
 
 If `TASKS.md` is missing, propose creating one but do not create it without approval.
 
-### 5. Schedule 30-minute recurring reminder
-
-If a recurring reminder/timer tool is available in the current environment, schedule one every 30 minutes with the message: "⏱ 30 min — check your focus, review progress on current task". If a sound step is supported, play `~/.claude/sounds/30.mp3` when available.
-
-If no reminder/timer tool is available, do not fake it and do not create OS-level cron jobs. Tell the user to set an external 30-minute reminder.
-
-### 6. Report back
+### 5. Report back
 
 Print a short summary:
 
+- If step 2 found a blocked jadu-loop task, lead with that — branch name and blocking reason.
 - How many new subtasks were added and what area they cover.
-- Confirmation that the 30-minute recurring timer is set (or unavailable).
 - One-line suggestion for where to start.
 
 Do not ask for confirmation at any step — just do it.
@@ -78,4 +64,3 @@ Do not ask for confirmation at any step — just do it.
 - Treat this as planning/session setup only.
 - Do not implement feature/code changes.
 - Obey repository `AGENTS.md` and user approval rules before changing files.
-- Keep only the 30-minute reminder; do not add 60-minute reminders.
