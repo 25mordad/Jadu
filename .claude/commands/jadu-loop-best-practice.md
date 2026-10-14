@@ -86,7 +86,11 @@ When the finalize subtask is done: move `LOOP_TASK.md` to `LOOP_TASK_ARCHIVE/<to
 
 ### 4. Log
 
-Append one line to `logs/loop.log`: timestamp, branch, subtasks completed / skipped this run, number of decisions, end state (`in progress` / `blocked` / `complete` / `complete, next promoted`).
+Append exactly one line to `logs/loop.log` (never rewrite the file), in exactly this shape, with the timestamp taken from `date -Iseconds` (never written from memory):
+
+```
+<timestamp> | <branch> | done: <subtask list or none> | skipped: <subtask list or none> | decisions: <n> | <in progress / blocked / complete / complete, next promoted (<file>)>
+```
 
 ### 5. Notify
 
