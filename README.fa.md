@@ -81,6 +81,7 @@ cp -R .codex/skills/jadu-* ~/.codex/skills/
 
 - مثل `jadu-loop` نصبش کنید (مرحله‌ی ۱ بالا). اگر `/jadu-loop-best-practice` را در چت بنویسید، `scripts/jadu-loop/run_loop.py` را در پس‌زمینه اجرا می‌کند و همان‌جا دنبالش می‌کند: برای هر تسک یک `claude -p "/jadu-loop-best-practice --task"` تازه. اجرای یک تسک با دست: `claude -p "/jadu-loop-best-practice --task" --model opus --permission-mode acceptEdits`.
 - مجوزهای دائمی: کارهای مخصوص مالک را که از قبل تأیید می‌کنید در `.claude/loop-grants.md` بنویسید (`install`، `allowlist`، `security-patch`، `advance`). محدودیت‌های سخت هیچ‌وقت مجوز نمی‌گیرند.
+- برای این نسخه، `LOOP_TASK.md`، `LOOP_TASK_QUEUE/`، `LOOP_TASK_ARCHIVE/`، `.loop_state/` و `.claude/loop-grants.md` را به‌جای آرشیو tracked مرحله‌ی ۵ gitignore کنید تا صف با عوض‌شدن branch از بین نرود و وارد PR نشود. آرشیو tracked هم کار می‌کند؛ loop جابه‌جایی را commit می‌کند.
 - صف اختیاری: فایل‌های تسک آماده‌ی بعدی را در `LOOP_TASK_QUEUE/` بگذارید. وقتی PR یک تسک باز شد و آن تسک بایگانی شد، فایل بعدی (به ترتیب نام) به `LOOP_TASK.md` تبدیل می‌شود و اجرای بعدی آن را شروع می‌کند.
 - اگر Briefing بگوید پروژه‌تان production را چطور مشخص می‌کند (مثلاً خط `ENVIRONMENT=`)، loop اول آن را چک می‌کند و روی production اجرا نمی‌شود.
 
