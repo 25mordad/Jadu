@@ -32,11 +32,12 @@ Jadu is a public collection of reusable AI-agent workflows for structured projec
 
 ### The best-practice variant moves the human gate, it does not remove it
 
-`jadu-loop-best-practice` is a second, separately opted-in variant for owners who would rather review once, at the PR, than be paged at every checkpoint. Where `jadu-loop` blocks and waits, it decides and continues: it self-reviews a `review-checkpoint`, makes up to three fix attempts on a failing `VERIFY` and then skips that subtask (and the ones depending on it) instead of blocking, resolves an underspecified `ACTION` with the most conservative reading, and promotes the next task from `LOOP_TASK_QUEUE/` once the current one is archived. It stays safe because of what it still refuses to do:
+`jadu-loop-best-practice` is a second, separately opted-in variant for owners who would rather review once, at the PR, than be paged at every checkpoint. Where `jadu-loop` blocks and waits, it decides and continues: it self-reviews a `review-checkpoint`, makes up to three fix attempts on a failing `VERIFY` and then skips that subtask (and the ones depending on it) instead of blocking, resolves an underspecified `ACTION` or a design choice by a fixed order (the `VERIFY`, the Briefing, the project's conventions, recognised best practice, the smallest change), turns findings outside the subtask into new subtasks, and promotes the next task from `LOOP_TASK_QUEUE/` once the current one is archived. It stays safe because of what it still refuses to do:
 
 - Every decision is written to a `## Decisions` section of `LOOP_TASK.md` (situation, choice, alternative, reason, undo) and copied into the PR. Any skipped subtask makes the PR a draft.
 - It never makes a failing `VERIFY` pass by editing the check, a test or an assertion instead of the code.
 - Hard limits still block: never merge, push to trunk, force-push or rewrite pushed history; never touch production or anything live (real messages, money, production deploys/data); never read or commit secrets; never expand its own permissions; abort and block on any merge/rebase conflict; never act outside its own branch and PR.
+- Only hard limits and `TYPE: hard-stop` (a paid call, a destructive action, a credential, an install the allowlist cannot run) block. Owner-only steps the owner pre-approved in `.claude/loop-grants.md` are cleared by the watching chat session, never by the loop's `--task` runs, and never for a hard limit.
 - Context reads beyond `ACTION` are bounded to what a decision needs — no open-ended exploration.
 
 Do not generalize either pattern to any other Jadu workflow. `jadu-bidar`/`jadu-payan` keep the normal "confirm before implementing" rule.
