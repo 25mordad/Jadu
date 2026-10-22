@@ -18,6 +18,7 @@ Jadu is a public collection of reusable AI-agent workflows for structured projec
 | Payan | Close a session (commits and pushes automatically at the end) | `/jadu-payan` | `jadu-payan` skill |
 | Loop | Autonomous, unattended execution of pre-approved subtasks from `LOOP_TASK.md` — opt-in, off by default | `/jadu-loop` | `jadu-loop` skill |
 | Loop (best practice) | Same as Loop, but decides and records instead of pausing for a human; the owner reviews every decision in the PR — opt-in, off by default | `/jadu-loop-best-practice` | `jadu-loop-best-practice` skill |
+| Loop prepare | Turns the project's existing tasks into a ready `LOOP_TASK_QUEUE/` for the best-practice loop; prepares only, never runs tasks | `/jadu-loop-prepare` | `jadu-loop-prepare` skill |
 
 `jadu-tamam` has been renamed to `jadu-payan`. Do not add new references to `jadu-tamam` except as historical migration notes.
 

@@ -17,6 +17,7 @@ A collection of AI-agent workflow skills for structured, productive project sess
 | Payan | `/jadu-payan` | `jadu-payan` skill | Session end — inline close (no brief), updates docs/tasks, then commits and pushes automatically |
 | Loop | `/jadu-loop` | `jadu-loop` skill | **Opt-in, off by default.** Autonomous execution of pre-approved subtasks from `LOOP_TASK.md` — no per-step approval. See [Loop setup](#loop-setup-opt-in) below |
 | Loop (best practice) | `/jadu-loop-best-practice` | `jadu-loop-best-practice` skill | **Opt-in, off by default.** Same as Loop, but decides and records instead of pausing for a human; you review every decision in the PR. See [Best-practice variant](#best-practice-variant-opt-in) below |
+| Loop prepare | `/jadu-loop-prepare` | `jadu-loop-prepare` skill | Turns the project's existing tasks (phase files, plan, open follow-ups) into ready task files in `LOOP_TASK_QUEUE/` for the best-practice loop, aligns the loop rules, writes standing grants and checks permissions. Prepares only; does not run the loop |
 
 `jadu-tamam` was renamed to `jadu-payan`.
 

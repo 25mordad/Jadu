@@ -15,6 +15,7 @@
 | Payan | `/jadu-payan` | skill `jadu-payan` | پایان جلسه — بدون خلاصه، به‌صورت مستقیم مستندات/وظایف را به‌روزرسانی می‌کند و در پایان به‌طور خودکار commit و push می‌کند |
 | Loop | `/jadu-loop` | skill `jadu-loop` | **اختیاری و به‌صورت پیش‌فرض خاموش.** اجرای خودکار زیروظایف از‌پیش‌تاییدشده در `LOOP_TASK.md` — بدون تاییدِ هر مرحله. به بخش «راه‌اندازی Loop» پایین مراجعه کنید |
 | Loop (best practice) | `/jadu-loop-best-practice` | skill `jadu-loop-best-practice` | **اختیاری و به‌صورت پیش‌فرض خاموش.** مثل Loop، اما به‌جای توقف برای انسان، بهترین تصمیم را می‌گیرد، ثبتش می‌کند و ادامه می‌دهد؛ همه‌ی تصمیم‌ها را در PR بررسی می‌کنید. به بخش «نسخه‌ی best practice» پایین مراجعه کنید |
+| Loop prepare | `/jadu-loop-prepare` | skill `jadu-loop-prepare` | تسک‌های موجود پروژه (فایل‌های فاز، plan، کارهای باقی‌مانده) را به فایل‌های تسک آماده در `LOOP_TASK_QUEUE/` برای loop نسخه‌ی best practice تبدیل می‌کند. فقط آماده می‌کند و loop را اجرا نمی‌کند |
 
 `jadu-tamam` به `jadu-payan` تغییر نام داده است.
 
