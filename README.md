@@ -86,6 +86,7 @@ For projects that use multiple agents, keep an `AGENTS.md` file in the project r
 
 - Install it like `jadu-loop` (step 1 above). Typed in chat, `/jadu-loop-best-practice` starts `scripts/jadu-loop/run_loop.py` in the background and watches it there: one fresh `claude -p "/jadu-loop-best-practice --task"` per task, the usage gate before each, and a block waits in place (`--wait-on-block`) instead of ending the loop. One task by hand: `claude -p "/jadu-loop-best-practice --task" --model opus --permission-mode acceptEdits`.
 - Standing grants: list in `.claude/loop-grants.md` the owner-only steps you pre-approve (`install`, `allowlist`, `security-patch`, `advance`); the watching session then clears those blocks itself and records each one. Hard limits are never granted.
+- Gitignore `LOOP_TASK.md`, `LOOP_TASK_QUEUE/`, `LOOP_TASK_ARCHIVE/`, `.loop_state/` and `.claude/loop-grants.md` for this variant, instead of the tracked archive in step 5: then the queue survives branch switches and never lands in a PR. A tracked archive still works; the loop commits the move.
 - Optional queue: put further ready task files in `LOOP_TASK_QUEUE/` (`010-…`, `020-…`). Once a task's PR is open and it is archived, the next file (in name order) is promoted to `LOOP_TASK.md` and the following run starts it. A queue with no `LOOP_TASK.md` yet is fine: the runner's `--queue` lets the first run promote one.
 - If the Briefing names how your project marks production (e.g. an `ENVIRONMENT=` line), the loop checks it first and refuses to run against production.
 
