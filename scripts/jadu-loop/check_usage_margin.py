@@ -14,6 +14,9 @@ The 5-hour and weekly limits are judged separately, each with two lines:
   ceiling — a task already running is stopped (by run_loop.py's watchdog) here
 The gap between them is room for a started task to finish. Usage only drops
 when a limit resets, so "back under the start line" means "it has reset".
+Plans that include Fable show a third line, "Current week (Fable)". It is judged like
+the weekly limit, and required, only for a Fable run (JADU_FABLE_RUN, set by
+run_loop.py --allow-fable); other runs ignore it.
 
 Notifies once per pause (not every tick) and once on resume.
 
@@ -40,10 +43,22 @@ LIMITS = {
         95,
         98,
     ),
+    # Fable has its own weekly allowance on this plan (a separate /usage line, 2026-10-21).
+    # Judged only for a Fable run (run_loop.py --allow-fable), so it stops before that
+    # allowance is used up and could fall through to usage credits.
+    "weekly-fable": (
+        re.compile(r"Current week \(Fable[^)]*\):\s*(\d+)% used(?:\s*·\s*resets\s*(.+))?"),
+        95,
+        98,
+    ),
 }
+# Set (to any value) by run_loop.py --allow-fable. Only then is the Fable line judged, and
+# then it is required: a Fable run with no readable Fable line waits instead of starting.
+FABLE_RUN_ENV = "JADU_FABLE_RUN"
 SUBSCRIPTION_LINE = "using your subscription"
 
 GO, STOP, WAIT = 0, 1, 2
+POLL_MINUTES = 10  # run_loop.py's POLL_SECONDS, for the message only
 
 REPO_ROOT = Path.cwd()
 FLAG_FILE = REPO_ROOT / ".loop_state" / "usage_margin_hit"
@@ -59,7 +74,7 @@ def _claude(*args: str) -> str:
         capture_output=True,
         text=True,
         encoding="utf-8",
-        timeout=60,
+        timeout=180,  # /usage sometimes takes over a minute; 60 s killed healthy runs (2026-10-16)
         env=env,
     )
     if proc.returncode != 0:
@@ -73,8 +88,17 @@ def fetch_usage_text() -> str:
     return json.loads(_claude("-p", "/usage", "--output-format", "json")).get("result", "")
 
 
+class AuthUnreadable(Exception):
+    """`claude auth status` answered but not as JSON: no wait fixes that, a human must look."""
+
+
 def fetch_auth_method() -> str:
-    return json.loads(_claude("auth", "status")).get("authMethod", "")
+    # --json is the default today; named anyway so a changed default cannot break the parse.
+    out = _claude("auth", "status", "--json")
+    try:
+        return json.loads(out).get("authMethod", "")
+    except (json.JSONDecodeError, AttributeError) as e:
+        raise AuthUnreadable(f"`claude auth status --json` is not JSON ({e})") from e
 
 
 def parse_usage(text: str) -> dict[str, tuple[int, str]]:
@@ -95,17 +119,20 @@ def decide(text: str, auth_method: str, env: dict, watch: bool = False) -> tuple
         return STOP, f"logged in via {auth_method!r}, not the claude.ai subscription"
     if SUBSCRIPTION_LINE not in text:
         return STOP, "/usage does not say 'using your subscription' — would spend usage credits"
+    limits = dict(LIMITS)
+    if not env.get(FABLE_RUN_ENV):
+        del limits["weekly-fable"]  # an opus/sonnet run does not draw on the Fable allowance
     usage = parse_usage(text)
-    missing = [name for name in LIMITS if name not in usage]
+    missing = [name for name in limits if name not in usage]
     if missing:
         return WAIT, f"could not read {', '.join(missing)} usage from /usage"
     over = []
-    for name, (_, start, ceiling) in LIMITS.items():
+    for name, (_, start, ceiling) in limits.items():
         pct, resets = usage[name]
         line = ceiling if watch else start
         if pct >= line:
             over.append(f"{name} at {pct}% (line {line}%, resets {resets or '?'})")
-    summary = ", ".join(f"{n} {usage[n][0]}%" for n in LIMITS)
+    summary = ", ".join(f"{n} {usage[n][0]}%" for n in limits)
     if over:
         return WAIT, "paused: " + "; ".join(over)
     return GO, f"ok: {summary}"
@@ -113,9 +140,21 @@ def decide(text: str, auth_method: str, env: dict, watch: bool = False) -> tuple
 
 def check(watch: bool = False) -> tuple[int, str]:
     try:
-        return decide(fetch_usage_text(), fetch_auth_method(), dict(os.environ), watch)
+        auth_method = fetch_auth_method()
+    except AuthUnreadable as e:  # retrying cannot fix the format, so stop and say why
+        return STOP, f"auth check failed: {e}"
+    except Exception as e:
+        return WAIT, f"usage check failed: {e}"
+    try:
+        return decide(fetch_usage_text(), auth_method, dict(os.environ), watch)
     except Exception as e:  # unreadable usage is never treated as fine
         return WAIT, f"usage check failed: {e}"
+
+
+def unreadable(reason: str) -> bool:
+    """True when the check could not read usage at all (slow or broken /usage), as opposed to
+    reading it and finding a limit over its line. The watchdog tolerates a few of these."""
+    return reason.startswith(("usage check failed", "could not read"))
 
 
 def notify(message: str) -> None:
@@ -136,7 +175,13 @@ def notify_change(verdict: int, reason: str) -> None:
     if not FLAG_FILE.exists() or FLAG_FILE.read_text(encoding="utf-8").strip() != kind:
         FLAG_FILE.parent.mkdir(parents=True, exist_ok=True)
         FLAG_FILE.write_text(kind + "\n", encoding="utf-8")
-        notify(("STOPPED, needs you: " if verdict == STOP else "") + reason)
+        if verdict == STOP:
+            msg = f"STOPPED, needs you: {reason}"
+        elif unreadable(reason):
+            msg = f"jadu-loop waiting, usage unreadable, retrying every {POLL_MINUTES} min: {reason}"
+        else:
+            msg = f"jadu-loop waiting for the limit to reset: {reason}"
+        notify(msg)
 
 
 def main() -> None:

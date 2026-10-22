@@ -19,6 +19,8 @@ class RunLoopTest(unittest.TestCase):
             "ROOT": self.root,
             "LOG": self.root / "runs.log",
             "WATCH_SECONDS": 0.2,
+            "PAUSE_SECONDS": 0,
+            "OUTBOX": self.root / "telegram.md",
         }.items():
             patcher = mock.patch.object(run_loop, name, value)
             patcher.start()
@@ -69,6 +71,126 @@ class RunLoopTest(unittest.TestCase):
         ):
             self.assertEqual(run_loop.main([]), 1)
         run_task.assert_not_called()
+
+    def write_task(self, text: str) -> None:
+        (self.root / "LOOP_TASK.md").write_text(text, encoding="utf-8")
+
+    def test_progress_state_changes_when_the_task_file_changes(self):
+        self.write_task("STATUS: idle\n\n- [ ] 1. Do it\n")
+        before = run_loop.progress_state()
+        self.write_task("STATUS: idle\n\n- [x] 1. Do it\n")
+        self.assertNotEqual(run_loop.progress_state(), before)
+
+    def test_progress_state_changes_when_a_task_is_archived_or_queued(self):
+        for folder in ("LOOP_TASK_ARCHIVE", "LOOP_TASK_QUEUE"):
+            (self.root / folder).mkdir()
+            before = run_loop.progress_state()
+            (self.root / folder / "010-x.md").write_text("x", encoding="utf-8")
+            self.assertNotEqual(run_loop.progress_state(), before, folder)
+
+    def test_progress_state_is_stable_when_nothing_changes(self):
+        self.write_task("STATUS: idle\n\n- [ ] 1. Do it\n")
+        (self.root / "LOOP_TASK_QUEUE").mkdir()
+        (self.root / "LOOP_TASK_QUEUE" / "b.md").write_text("b", encoding="utf-8")
+        (self.root / "LOOP_TASK_QUEUE" / "a.md").write_text("a", encoding="utf-8")
+        self.assertEqual(run_loop.progress_state(), run_loop.progress_state())
+
+    def test_nothing_to_do_ends_the_loop_cleanly_and_logs_why(self):
+        self.write_task("STATUS: idle\n\n- [x] 1. Done\n")
+        with mock.patch.object(run_loop, "run_task") as run_task:
+            self.assertEqual(run_loop.main([]), 0)
+        run_task.assert_not_called()
+        log = (self.root / "runs.log").read_text(encoding="utf-8")
+        self.assertIn("no open subtasks", log)
+        self.assertIn("nothing to do, loop finished", log)
+
+    def test_max_runs_bounds_the_loop(self):
+        self.write_task("STATUS: idle\n\n- [ ] 1. Do it\n")
+        calls = []
+
+        def progress(*args):  # each run changes the task, so the stall check never fires
+            calls.append(args)
+            self.write_task(f"STATUS: idle\n\n- [ ] 1. Do it\n<!-- run {len(calls)} -->\n")
+
+        with (
+            mock.patch.object(usage, "check", return_value=(usage.GO, "ok")),
+            mock.patch.object(run_loop, "run_task", side_effect=progress),
+        ):
+            self.assertEqual(run_loop.main(["--max-runs", "2"]), 0)
+        self.assertEqual(len(calls), 2)
+
+    def test_three_runs_without_progress_stop_the_loop(self):
+        self.write_task("STATUS: idle\n\n- [ ] 1. Do it\n")
+        with (
+            mock.patch.object(usage, "check", return_value=(usage.GO, "ok")),
+            mock.patch.object(usage, "notify"),
+            mock.patch.object(run_loop, "run_task", return_value=None) as run_task,
+        ):
+            self.assertEqual(run_loop.main([]), 1)
+        self.assertEqual(run_task.call_count, run_loop.MAX_STALLS)
+
+    def test_a_block_exits_by_default(self):
+        self.write_task("STATUS: blocked\n\n- [ ] 1. Do it BLOCKED\n")
+        with mock.patch.object(usage, "notify"), mock.patch.object(run_loop, "run_task") as run_task:
+            self.assertEqual(run_loop.main([]), 1)
+        run_task.assert_not_called()
+
+    def test_wait_for_unblock_returns_once_status_is_idle(self):
+        self.write_task("STATUS: blocked\n")
+        sleeps = []
+
+        def sleep(seconds):
+            sleeps.append(seconds)
+            if len(sleeps) == 2:
+                self.write_task("STATUS: idle\n")
+
+        run_loop.wait_for_unblock(sleep=sleep)
+        self.assertEqual(sleeps, [run_loop.BLOCK_POLL_SECONDS] * 2)
+
+    def test_queue_flag_lets_a_queue_only_project_start(self):
+        (self.root / "LOOP_TASK_QUEUE").mkdir()
+        (self.root / "LOOP_TASK_QUEUE" / "010-next.md").write_text("STATUS: idle\n", encoding="utf-8")
+        with mock.patch.object(run_loop, "run_task") as run_task:
+            self.assertEqual(run_loop.main([]), 0)
+        run_task.assert_not_called()
+        with (
+            mock.patch.object(usage, "check", return_value=(usage.GO, "ok")),
+            mock.patch.object(run_loop, "run_task", return_value=None) as run_task,
+        ):
+            run_loop.main(["--queue", "--max-runs", "1"])
+        run_task.assert_called_once()
+
+    def test_fable_is_replaced_unless_allowed(self):
+        with mock.patch.dict(run_loop.os.environ, {}, clear=False):
+            run_loop.os.environ.pop(usage.FABLE_RUN_ENV, None)
+            self.assertEqual(run_loop.resolve_model("fable"), run_loop.MODEL)
+            self.assertNotIn(usage.FABLE_RUN_ENV, run_loop.os.environ)
+            self.assertEqual(run_loop.resolve_model("fable", allow_fable=True), "fable")
+            self.assertIn(usage.FABLE_RUN_ENV, run_loop.os.environ)
+        self.assertEqual(run_loop.resolve_model("sonnet"), "sonnet")
+
+    def test_project_allowlist_is_read_from_both_settings_files(self):
+        (self.root / ".claude").mkdir()
+        (self.root / ".claude" / "settings.json").write_text(
+            '{"permissions": {"allow": ["Bash(git status)"]}}', encoding="utf-8")
+        (self.root / ".claude" / "settings.local.json").write_text(
+            '{"permissions": {"allow": ["Bash(pytest:*)"]}}', encoding="utf-8")
+        self.assertEqual(run_loop.project_allow(), ["Bash(git status)", "Bash(pytest:*)"])
+
+    def test_outbox_is_sent_and_removed(self):
+        run_loop.OUTBOX.write_text("task done", encoding="utf-8")
+        with mock.patch.object(run_loop.subprocess, "run", return_value=mock.Mock(returncode=0)) as run:
+            run_loop.send_outbox()
+        self.assertIn("task done", run.call_args[0][0])
+        self.assertFalse(run_loop.OUTBOX.exists())
+
+    def test_outbox_send_failure_keeps_the_message(self):
+        run_loop.OUTBOX.write_text("task done", encoding="utf-8")
+        with mock.patch.object(run_loop.subprocess, "run", return_value=mock.Mock(returncode=1)):
+            run_loop.send_outbox()
+        self.assertFalse(run_loop.OUTBOX.exists())
+        kept = list(self.root.glob("telegram-unsent-*.md"))
+        self.assertEqual([k.read_text(encoding="utf-8") for k in kept], ["task done"])
 
 
 if __name__ == "__main__":
