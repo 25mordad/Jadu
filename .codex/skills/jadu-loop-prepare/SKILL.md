@@ -55,7 +55,7 @@ A task already active in `LOOP_TASK.md` stays where it is and is never edited he
 
 ### 2. Align the project's loop rules
 
-Exactly as `jadu-loop-best-practice` runner step 2a. Rewrite only rules that override decide-and-continue: a stop for a decidable choice, "no fix attempts", "no automatic advance", an owner step a grant covers. Keep each rule's number, add the date. Never loosen hard limits 1–6, paid-call or secrets rules, or read-only rules for other folders. Rewrite the same rules wherever a phase file or task Briefing repeats them (the files written in step 4 inherit the new wording). Commit the rules files on the trunk as step 2a says (clean tree only; a dirty tree → no commit, say why), and keep the old and new wording for the summary.
+Exactly as `jadu-loop-best-practice` runner step 2a. Rewrite only rules that override decide-and-continue: a stop for a decidable choice, "no fix attempts", "no automatic advance", an owner step a grant covers. Keep each rule's number, add the date. Never loosen hard limits 1–6, paid-call or secrets rules, or read-only rules for other folders. Rewrite the same rules wherever a phase file or task Briefing repeats them (the files written in step 4 inherit the new wording). Commit the rules files on the `loop/setup-<today>` branch and open its PR, as step 2a says. Never commit on the local trunk: the trunk is never pushed, so that commit would make it diverge from `origin` and block the loop at its next `git pull --ff-only`. Clean tree only; a dirty tree → no commit, say why. Keep the old and new wording for the summary.
 
 ### 3. Write the grants file
 
@@ -63,7 +63,7 @@ Exactly as `jadu-loop-best-practice` runner step 2a. Rewrite only rules that ove
 
 ### 4. Write one task file per task
 
-An existing task file (a phase file) is the source: keep its subtask numbers, `MANDATORY:` marks and Definition of Done, rewrite only what is vague or conflicts with the best-practice skill, and set it ready (`STATUS: idle`). Update the project's status table to say the file is ready. The queue file is a copy; the original stays in its folder. Start new files from `templates/jadu-loop/LOOP_TASK.skeleton.md` and follow `docs/jadu-loop-authoring-guide.md`. Name the file `LOOP_TASK_QUEUE/<nnn>-<issue or task>-<slug>.md` with a three-digit number in steps of ten (`010`, `020`, `030`), going on from the highest number in the queue and archive, so name order is run order and a later fix can slot in between (`015`). A follow-up fix that must run before a queued task that has not started gets a number between. The runner promotes from the queue by itself (best-practice runner `--queue`), so no `LOOP_TASK.md` is needed to start. Each file has:
+An existing task file (a phase file) is the source: keep its subtask numbers, `MANDATORY:` marks and Definition of Done, rewrite only what is vague or conflicts with the best-practice skill, and set it ready (`STATUS: idle`). The project's status table (if it has one) changes only inside a commit: when step 2 opens a setup PR, mark the task ready there in the same commit; otherwise leave the table to the task's own finalize subtask. Never leave it as an uncommitted edit, which would travel across branch switches into an unrelated PR. The queue file is a copy; the original stays in its folder. Start new files from `templates/jadu-loop/LOOP_TASK.skeleton.md` and follow `docs/jadu-loop-authoring-guide.md`. Name the file `LOOP_TASK_QUEUE/<nnn>-<issue or task>-<slug>.md` with a three-digit number in steps of ten (`010`, `020`, `030`), going on from the highest number already in `LOOP_TASK_QUEUE/` (`010` when it is empty; archive files are named by date and have no number, so never take one from there), so name order is run order and a later fix can slot in between (`015`). A follow-up fix that must run before a queued task that has not started gets a number between. The runner promotes from the queue by itself (best-practice runner `--queue`), so no `LOOP_TASK.md` is needed to start. Each file has:
 
 - `STATUS: idle` and a `BRANCH:` of `<type>/<slug>`.
 - **Briefing**: why the task exists, what is out of scope, environment quirks, the decisions already taken for it (with source), and a `NEXT:` line when the following task builds on this one.
@@ -73,7 +73,7 @@ An existing task file (a phase file) is the source: keep its subtask numbers, `M
 - **A `TYPE: test` subtask** after the code it covers: the project's full test command plus lint and type checks scoped to the touched files.
 - **A `TYPE: review-checkpoint`** only where the loop must self-review a visible result (a page, a report). The best-practice loop self-reviews it; it does not stop.
 - **A `TYPE: hard-stop`** only for a paid call, a destructive action, a credential, or an install the loop's allowlist cannot run. Write the exact command. Never for design or architecture.
-- **A last `TYPE: finalize` subtask**: push and open a PR (or write `.loop_state/pr-<branch>.md` when the project has no remote or the push fails), never merge. It is never skipped (best-practice rule 10).
+- **A last `TYPE: finalize` subtask**: update the project's status table if it has one and step 2 did not, then push and open a PR (or write `.loop_state/pr-<branch>.md` when the project has no remote or the push fails), never merge. It is never skipped (best-practice rule 10).
 
 Keep subtasks small enough to finish within the project's per-subtask time limit.
 
@@ -89,14 +89,14 @@ Fix what the pass finds before the summary.
 ### 6. Show the queue, then start or stop
 
 One short message, in the owner's reply style:
-- the rules changed in step 2, old and new wording;
+- the rules changed in step 2, old and new wording, and the setup PR's link (the runner starts after the owner merges it);
 - the grants written;
 - where each task came from (phase file, plan section, follow-up);
 - a table: file, task, number of subtasks, hard stops (with the exact command), base branch;
 - the decisions taken while preparing, each with its source;
 - **Waiting for you**: only hard stops and the human-only items from `jadu-loop-best-practice` rule 4a, each with a recommended default.
 
-`Start: yes` → invoke `/jadu-loop-best-practice` (runner mode, Claude Code only). Otherwise end with the one line that starts it.
+`Start: yes` → invoke `/jadu-loop-best-practice` (runner mode, Claude Code only); with a setup PR open, it starts the runner once the owner has merged it. Otherwise end with the one line that starts it.
 
 ## Never do
 
