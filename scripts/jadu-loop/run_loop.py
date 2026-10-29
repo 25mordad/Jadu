@@ -38,6 +38,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import check_usage_margin as usage  # noqa: E402
+from check_loop_queue import STATUS_RE  # noqa: E402
 
 MODEL = "opus"  # always named: a Fable model in -p can bill usage credits; see --allow-fable
 POLL_SECONDS = 600
@@ -108,8 +109,13 @@ def wait_for_go(sleep=time.sleep) -> bool:
 
 
 def task_blocked() -> bool:
+    """Reads STATUS the way the queue gate does, so `STATUS: Blocked` or `STATUS:blocked`
+    is a block here too, not "nothing to do" (2026-10-29)."""
     task = ROOT / "LOOP_TASK.md"
-    return task.exists() and "STATUS: blocked" in task.read_text(encoding="utf-8")
+    if not task.exists():
+        return False
+    match = STATUS_RE.search(task.read_text(encoding="utf-8"))
+    return bool(match) and match.group(1).lower() == "blocked"
 
 
 def wait_for_unblock(sleep=time.sleep) -> None:
@@ -134,8 +140,14 @@ def project_allow() -> list[str]:
     allow = []
     for name in ("settings.json", "settings.local.json"):
         f = ROOT / ".claude" / name
-        if f.exists():
-            allow += json.loads(f.read_text(encoding="utf-8")).get("permissions", {}).get("allow", [])
+        if not f.exists():
+            continue
+        try:
+            settings = json.loads(f.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as e:  # a hand-edit must not kill an unattended loop
+            log(f"allowlist: skipped .claude/{name}, not valid JSON: {e}")
+            continue
+        allow += settings.get("permissions", {}).get("allow", [])
     return allow
 
 

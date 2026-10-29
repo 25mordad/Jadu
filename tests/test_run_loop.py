@@ -61,6 +61,39 @@ class RunLoopTest(unittest.TestCase):
             self.assertIsNone(run_loop.run_task("/jadu-loop"))
         self.assertIn("done", (self.root / "runs.log").read_text(encoding="utf-8"))
 
+    FAILED = (usage.WAIT, "usage check failed: timed out")
+
+    def watch(self, verdicts):
+        """run_task with the watchdog's checks answered in order. The fake run ends once
+        the list is used up, so the outcome does not depend on timing."""
+        done = self.root / "done"
+        self.fake_claude(
+            "import pathlib, time\n"
+            f"end = time.monotonic() + 30\n"
+            f"while not pathlib.Path({str(done)!r}).exists() and time.monotonic() < end:\n"
+            "    time.sleep(0.05)\n"
+        )
+        script = list(verdicts)
+
+        def check(watch=False):
+            if script:
+                return script.pop(0)
+            done.touch()
+            return usage.GO, "ok"
+
+        with mock.patch.object(usage, "check", side_effect=check):
+            return run_loop.run_task("/jadu-loop")
+
+    def test_watchdog_rides_out_two_failed_checks(self):
+        self.assertIsNone(self.watch([self.FAILED, self.FAILED, (usage.GO, "ok")]))
+
+    def test_watchdog_kills_on_three_failed_checks_in_a_row(self):
+        self.assertEqual(self.watch([self.FAILED] * 3), self.FAILED[1])
+
+    def test_watchdog_resets_the_count_on_a_readable_check(self):
+        sequence = [self.FAILED, self.FAILED, (usage.GO, "ok"), self.FAILED, self.FAILED]
+        self.assertIsNone(self.watch(sequence))
+
     def test_loop_exits_when_the_gate_says_stop(self):
         (self.root / "LOOP_TASK.md").write_text(
             "STATUS: idle\n\n- [ ] 1. Do it\n", encoding="utf-8"
@@ -147,6 +180,34 @@ class RunLoopTest(unittest.TestCase):
         run_loop.wait_for_unblock(sleep=sleep)
         self.assertEqual(sleeps, [run_loop.BLOCK_POLL_SECONDS] * 2)
 
+    def test_task_blocked_reads_status_like_the_gate(self):
+        for text, blocked in [
+            ("STATUS: blocked\n", True),
+            ("STATUS: Blocked\n", True),
+            ("STATUS:blocked\n", True),
+            ("STATUS: idle\n\nnot STATUS: blocked\n", False),
+            ("no status line\n", False),
+        ]:
+            self.write_task(text)
+            self.assertEqual(run_loop.task_blocked(), blocked, text)
+
+    def test_wait_on_block_notifies_waits_and_continues(self):
+        self.write_task("STATUS: Blocked\n\n- [ ] 1. Do it BLOCKED\n")
+
+        def unblock():
+            self.write_task("STATUS: idle\n\n- [ ] 1. Do it\n")
+
+        with (
+            mock.patch.object(usage, "check", return_value=(usage.GO, "ok")),
+            mock.patch.object(usage, "notify") as notify,
+            mock.patch.object(run_loop, "wait_for_unblock", side_effect=unblock) as wait,
+            mock.patch.object(run_loop, "run_task", return_value=None) as run_task,
+        ):
+            run_loop.main(["--wait-on-block", "--max-runs", "2"])
+        wait.assert_called_once()
+        self.assertIn("waiting on a block", notify.call_args_list[0][0][0])
+        run_task.assert_called_once()
+
     def test_queue_flag_lets_a_queue_only_project_start(self):
         (self.root / "LOOP_TASK_QUEUE").mkdir()
         (self.root / "LOOP_TASK_QUEUE" / "010-next.md").write_text("STATUS: idle\n", encoding="utf-8")
@@ -176,6 +237,16 @@ class RunLoopTest(unittest.TestCase):
         (self.root / ".claude" / "settings.local.json").write_text(
             '{"permissions": {"allow": ["Bash(pytest:*)"]}}', encoding="utf-8")
         self.assertEqual(run_loop.project_allow(), ["Bash(git status)", "Bash(pytest:*)"])
+
+    def test_a_broken_settings_file_is_skipped_and_logged(self):
+        (self.root / ".claude").mkdir()
+        (self.root / ".claude" / "settings.json").write_text(
+            '{"permissions": {"allow": ["Bash(git status)"]}}', encoding="utf-8")
+        (self.root / ".claude" / "settings.local.json").write_text(
+            '{"permissions": {"allow": ["Bash(pytest:*)",]}}', encoding="utf-8")
+        self.assertEqual(run_loop.project_allow(), ["Bash(git status)"])
+        self.assertIn("skipped .claude/settings.local.json",
+                      (self.root / "runs.log").read_text(encoding="utf-8"))
 
     def test_outbox_is_sent_and_removed(self):
         run_loop.OUTBOX.write_text("task done", encoding="utf-8")
