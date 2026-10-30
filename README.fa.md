@@ -14,6 +14,8 @@
 | Zad | `/jadu-zad` | skill `jadu-zad` | ویزارد راه‌اندازی پروژه — سوالات را یک‌جا می‌پرسد و فایل‌های context پروژه را می‌سازد |
 | Payan | `/jadu-payan` | skill `jadu-payan` | پایان جلسه — بدون خلاصه، به‌صورت مستقیم مستندات/وظایف را به‌روزرسانی می‌کند و در پایان به‌طور خودکار commit و push می‌کند |
 | Loop | `/jadu-loop` | skill `jadu-loop` | **اختیاری و به‌صورت پیش‌فرض خاموش.** اجرای خودکار زیروظایف از‌پیش‌تاییدشده در `LOOP_TASK.md` — بدون تاییدِ هر مرحله. به بخش «راه‌اندازی Loop» پایین مراجعه کنید |
+| Loop (best practice) | `/jadu-loop-best-practice` | skill `jadu-loop-best-practice` | **اختیاری و به‌صورت پیش‌فرض خاموش.** مثل Loop، اما به‌جای توقف برای انسان، بهترین تصمیم را می‌گیرد، ثبتش می‌کند و ادامه می‌دهد؛ همه‌ی تصمیم‌ها را در PR بررسی می‌کنید. به بخش «نسخه‌ی best practice» پایین مراجعه کنید |
+| Loop prepare | `/jadu-loop-prepare` | skill `jadu-loop-prepare` | تسک‌های موجود پروژه (فایل‌های فاز، plan، کارهای باقی‌مانده) را به فایل‌های تسک آماده در `LOOP_TASK_QUEUE/` برای loop نسخه‌ی best practice تبدیل می‌کند. فقط آماده می‌کند و loop را اجرا نمی‌کند |
 
 `jadu-tamam` به `jadu-payan` تغییر نام داده است.
 
@@ -73,6 +75,16 @@ cp -R .codex/skills/jadu-* ~/.codex/skills/
 5. یک دایرکتوری tracked به نام `LOOP_TASK_ARCHIVE/` بسازید (فایل‌های تسک تمام‌شده به آن‌جا منتقل می‌شوند) و `.loop_state/` را gitignore کنید (فقط وضعیت محلی اجرا).
 6. قبل از اجرای loop، هر دستوری که زیروظایف‌تان اجرا می‌کنند را به allowlist شل agentتان اضافه کنید — loop نمی‌تواند مجوزهای خودش را وسط اجرا گسترش دهد.
 7. اجرا کنید: `python3 scripts/jadu-loop/check_loop_queue.py && python3 scripts/jadu-loop/check_usage_margin.py && claude -p "/jadu-loop" --permission-mode acceptEdits` — دستی، یا داخل یک حلقه‌ی خودتان (`while ... sleep N; done`) برای یک تسک طولانی و بدون‌نظارت. **بدون تصمیم صریح، این را به `cron` وصل نکنید** — به یادداشت‌های مربوط به `cron` در بخش سفارشی‌سازی/راهنمای مشترک مراجعه کنید.
+
+### نسخه‌ی best practice (اختیاری)
+
+`jadu-loop-best-practice` همان راه‌اندازی، همان فایل‌های تسک و همان اسکریپت‌ها را استفاده می‌کند. تفاوتش این است: هر جا که `jadu-loop` می‌ایستد و منتظر شما می‌ماند (یک `review-checkpoint`، یک `VERIFY` که مدام شکست می‌خورد، یک انتخاب طراحی، یک زیروظیفه‌ی مبهم، یک تسک تمام‌شده)، این نسخه بهترین تصمیم را می‌گیرد، آن را در بخش `## Decisions` فایل `LOOP_TASK.md` ثبت می‌کند و ادامه می‌دهد. شما همه چیز را یک‌جا در PR بررسی می‌کنید: زیروظیفه‌ای که بعد از سه تلاش هنوز شکست می‌خورد کنار گذاشته می‌شود و PR به‌صورت draft باز می‌شود، با فهرست تصمیم‌ها و زیروظایف کنارگذاشته‌شده در متن آن. محدودیت‌های سخت همچنان متوقفش می‌کنند: هیچ‌وقت merge نمی‌کند، به trunk push نمی‌کند، به production یا secretها دست نمی‌زند و مجوزهای خودش را گسترش نمی‌دهد.
+
+- مثل `jadu-loop` نصبش کنید (مرحله‌ی ۱ بالا). اگر `/jadu-loop-best-practice` را در چت بنویسید، `scripts/jadu-loop/run_loop.py` را در پس‌زمینه اجرا می‌کند و همان‌جا دنبالش می‌کند: برای هر تسک یک `claude -p "/jadu-loop-best-practice --task"` تازه. اجرای یک تسک با دست: `claude -p "/jadu-loop-best-practice --task" --model opus --permission-mode acceptEdits`.
+- مجوزهای دائمی: کارهای مخصوص مالک را که از قبل تأیید می‌کنید در `.claude/loop-grants.md` بنویسید (`install`، `allowlist`، `security-patch`، `advance`). محدودیت‌های سخت هیچ‌وقت مجوز نمی‌گیرند.
+- برای این نسخه، `LOOP_TASK.md`، `LOOP_TASK_QUEUE/`، `LOOP_TASK_ARCHIVE/`، `.loop_state/` و `.claude/loop-grants.md` را به‌جای آرشیو tracked مرحله‌ی ۵ gitignore کنید تا صف با عوض‌شدن branch از بین نرود و وارد PR نشود. آرشیو tracked هم کار می‌کند؛ loop جابه‌جایی را روی branch تسک commit می‌کند. `LOOP_TASK.md` و `LOOP_TASK_QUEUE/` را هرگز روی trunk commit نکنید: loop بعد از هر تسک به trunk برمی‌گردد، نسخه‌ی commit‌شده با آن برمی‌گردد و تسک تمام‌شده دوباره اجرا می‌شود.
+- صف اختیاری: فایل‌های تسک آماده‌ی بعدی را در `LOOP_TASK_QUEUE/` بگذارید. وقتی PR یک تسک باز شد و آن تسک بایگانی شد، فایل بعدی (به ترتیب نام) به `LOOP_TASK.md` تبدیل می‌شود و اجرای بعدی آن را شروع می‌کند.
+- اگر Briefing بگوید پروژه‌تان production را چطور مشخص می‌کند (مثلاً خط `ENVIRONMENT=`)، loop اول آن را چک می‌کند و روی production اجرا نمی‌شود.
 
 ---
 
